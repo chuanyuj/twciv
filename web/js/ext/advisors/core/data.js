@@ -64,20 +64,18 @@ export function buildData(app) {
   const countyVintage = counties?.vintage || "ACS 5-year";
 
   // --- fields ---------------------------------------------------------------------------------------------------
-  const F = (key, label, format, o = {}) => ({ key, label, format, unit: o.unit || null, higher_is: o.higher_is || "neutral", source: o.source || "", description: o.description || "", lens: o.lens || null, group: o.group || "Economy", derived: !!o.derived });
+  const F = (key, label, format, o = {}) => ({ key, label, format, unit: o.unit || null, higher_is: o.higher_is || "neutral", source: o.source || "", description: o.description || "", lens: o.lens || null, group: o.group || "經濟", derived: !!o.derived });
   const econFields = (src) => [
-    F("population", "Population", "int", { unit: "people", source: src, group: "People", description: `Residents (${vintage}, B01003).`, lens: "density" }),
-    F("growth", "Growth", "signed", { unit: "population change", higher_is: "neutral", source: "pep_population", group: "People", description: `Population change ${(nat.growth_years || []).join("–")} (Census population estimates, same borders both years).` }),
-    F("gdp", "GDP", "money", { unit: "$ per year", source: "bea_gdp", description: `${nation.gdp_vintage || "BEA"}: GDP in current dollars, counted where the work is done.` }),
-    F("gdp_pc", "GDP per person", "usd", { unit: "$ per resident", higher_is: "good", source: "bea_gdp", description: "GDP ÷ residents (BEA GDP year ÷ ACS population year)." }),
-    F("median_income", "Income", "usd", { unit: "median household income", higher_is: "good", source: src, group: "Prosperity", description: `Median household income (${vintage}).`, lens: "income" }),
-    F("median_rent", "Rent", "usd", { unit: "median gross rent / month", source: src, group: "Prosperity", description: `Median gross rent per month (${vintage}).` }),
-    F("home_value", "Home value", "usd", { unit: "median home value", source: src, group: "Prosperity", description: `Median value of owner-occupied homes (${vintage}).`, lens: "home" }),
-    F("affordability", "Home value ÷ income", "ratio", { unit: "years of income", higher_is: "bad", group: "Prosperity", description: "Median home value ÷ median household income: how many years of income a typical home costs.", derived: true }),
-    F("rent_burden", "Rent ÷ income", "pct", { unit: "median rent × 12 ÷ median income", higher_is: "bad", source: src, group: "Prosperity", description: "Median rent × 12 ÷ median household income (a ratio of medians, not the share of renters who are burdened)." }),
-    F("unemployment", "Unemployment", "pct", { unit: "unemployed ÷ labour force", higher_is: "bad", source: src, group: "Prosperity", description: `Unemployed ÷ civilian labour force (${vintage}, B23025).` }),
-    F("employed", "Employed", "int", { unit: "employed residents", source: src, description: `Employed residents, where they live (${vintage}).` }),
-    ...(nation.yields || []).filter((y) => y.unit !== "usd").map((y) => F(`y_${y.key}`, `${y.label} workers`, "int", { unit: "workers", source: src, group: "Yields", description: y.description })),
+    F("population", "總人口", "int", { unit: "人", source: src, group: "人口", description: `戶籍總人口（${vintage}）。`, lens: "density" }),
+    F("growth", "人口成長率", "signed", { unit: "變化率", higher_is: "neutral", source: "moi_ris", group: "人口", description: `${(nat.growth_years || []).join("–")} 年戶籍人口變化率（內政部戶政司）。` }),
+    F("gdp", "營利事業銷售額", "money", { unit: "元 / 年", source: "mof_sales", description: `${nation.gdp_vintage || "財政部"}：各縣市全年營利事業銷售額（新台幣）。` }),
+    F("gdp_pc", "人均銷售額", "usd", { unit: "元 / 人", higher_is: "good", source: "mof_sales", description: "營利事業銷售額 ÷ 戶籍總人口。" }),
+    F("median_income", "每戶可支配所得", "usd", { unit: "元 / 戶", higher_is: "good", source: src, group: "所得與房價", description: `平均每戶可支配所得（主計總處）。`, lens: "income" }),
+    F("home_value", "推估中位數房價", "usd", { unit: "元", source: src, group: "所得與房價", description: `各縣市中位數房價推估。`, lens: "home_ratio" }),
+    F("affordability", "房價所得比", "ratio", { unit: "倍", higher_is: "bad", group: "所得與房價", description: "推估房價 ÷ 每戶可支配所得。", derived: true }),
+    F("unemployment", "失業率", "pct", { unit: "%", higher_is: "bad", source: src, group: "所得與房價", description: `全年平均失業率（主計總處人力資源調查）。` }),
+    F("employed", "就業人口", "int", { unit: "人", source: src, description: `各縣市就業總人數（主計總處）。` }),
+    ...(nation.yields || []).filter((y) => y.unit !== "usd").map((y) => F(`y_${y.key}`, `${y.label}`, "int", { unit: "人", source: src, group: "五大產出", description: y.description })),
   ];
   const rollupFields = () => counties ? [...ROLLUP.map((k) => {
     const f = counties.fields.find((x) => x.key === k);
@@ -186,12 +184,12 @@ export function buildData(app) {
       energy_mw: s.energy ? s.energy.total : null,
     },
   }));
-  const landFields = LAND_KEYS.map((k) => F(`land_${k}`, LAND_LABEL[k], "pct", { unit: "share of land", source: "nlcd", group: "Land", description: `Share of the land in ${LAND_LABEL[k].toLowerCase()} (NLCD, mean over the area's hexes).`, lens: k === "forest" ? "forest" : k === "developed" ? "developed" : null }));
-  const energyField = F("energy_mw", "Mapped power", "mw", { unit: "MW of mapped sites", source: "eia_860m", group: "Energy", description: "Capacity of the power sites mapped as resources (each type above its size threshold): not the total generating capacity." });
+  const landFields = LAND_KEYS.map((k) => F(`land_${k}`, LAND_LABEL[k], "pct", { unit: "土地占比", source: "etopo", group: "土地", description: `${LAND_LABEL[k]}占該區陸地六角格平均比例。`, lens: k === "forest" ? "forest" : null }));
+  const energyField = F("energy_mw", "主力電廠容量", "mw", { unit: "MW", source: "taipower", group: "能源", description: "地圖標示之主要發電廠裝置容量合計（MW）。" });
   const states_ = makeLevel({
-    id: "states", label: "States", noun: "state",
+    id: "states", label: "22 縣市", noun: "縣市",
     rows: stateRows,
-    fields: [F("name", "State", "text", { group: "Name" }), ...econFields("acs_1yr"), ...rollupFields(), F("land_km2", "Land area", "km2", { unit: "km²", source: "census_gazetteer", group: "Land", derived: true }), ...landFields, energyField],
+    fields: [F("name", "縣市", "text", { group: "名稱" }), ...econFields("moi_ris"), ...rollupFields(), F("land_km2", "土地面積", "km2", { unit: "km²", source: "moi_ris", group: "土地", derived: true }), ...landFields, energyField],
     highlight: (rows) => ({ states: new Set(rows.map((r) => r.ref)) }),
     rowAtCell: (cell, byKey) => (owner[cell] >= 0 ? stateRows[owner[cell]] || null : null),
     focus: (row) => app.selectState(row.ref, { fly: true }),
@@ -208,9 +206,9 @@ export function buildData(app) {
   }));
   const metroByCity = new Map(metroRows.map((r) => [r.ref, r]));
   const metros = makeLevel({
-    id: "metros", label: "Metros", noun: "metro",
+    id: "metros", label: "都會核心", noun: "縣市",
     rows: metroRows,
-    fields: [F("name", "Metro", "text", { group: "Name" }), F("states", "States", "text", { group: "Name" }), F("kind", "Type", "text", { group: "Name", description: "Metropolitan (50,000+ urban core) or micropolitan area (OMB)." }), ...econFields("acs_1yr"), ...rollupFields(), F("land_km2", "Land area", "km2", { unit: "km²", source: "census_gazetteer", group: "Land", derived: true }), energyField],
+    fields: [F("name", "縣市", "text", { group: "名稱" }), F("states", "簡稱", "text", { group: "名稱" }), ...econFields("moi_ris"), ...rollupFields(), F("land_km2", "土地面積", "km2", { unit: "km²", source: "moi_ris", group: "土地", derived: true }), energyField],
     highlight: (rows, o = {}) => {
       const cells = new Set();
       for (const r of rows) for (const c of r.ref.footprint || [r.ref.cell]) cells.add(c);
@@ -246,7 +244,7 @@ export function buildData(app) {
     }));
     fields.splice(2, 0, F("metro", "Metro", "text", { group: "Name", description: "The metro or micro area the county belongs to (OMB), if it is on the map." }));
     counties_ = makeLevel({
-      id: "counties", label: "Counties", noun: "county",
+      id: "counties", label: "368 鄉鎮市區", noun: "鄉鎮市區",
       rows: countyRows, fields,
       highlight: (rows) => {
         const cells = new Set();

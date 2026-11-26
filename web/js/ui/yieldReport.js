@@ -18,13 +18,13 @@ const LENS_FOR = { population: "density", gold: "income", food: "farmland", unem
 // The advisor dashboard (ext/advisors) that explores each report further; `industry` preselects the Economy
 // advisor's specialisation ranking. Buttons show only when the advisors extension is installed.
 const ADVISOR_FOR = {
-  population: [{ id: "people", label: "People" }],
-  gold: [{ id: "economy", label: "Economy" }],
-  food: [{ id: "land", label: "Land" }, { id: "economy", label: "Economy (farming)", industry: "agriculture" }],
-  production: [{ id: "economy", label: "Economy (manufacturing)", industry: "manufacturing" }, { id: "energy", label: "Energy & Resources" }],
-  science: [{ id: "knowledge", label: "Knowledge" }],
-  culture: [{ id: "economy", label: "Economy (arts)", industry: "arts" }],
-  unemployment: [{ id: "prosperity", label: "Prosperity" }],
+  population: [{ id: "people", label: "人口與高齡" }],
+  gold: [{ id: "economy", label: "經濟產值" }],
+  food: [{ id: "land", label: "地形與土地" }, { id: "economy", label: "經濟（農林漁牧）", industry: "agriculture" }],
+  production: [{ id: "economy", label: "經濟（製造業）", industry: "manufacturing" }, { id: "energy", label: "能源與電廠" }],
+  science: [{ id: "knowledge", label: "教育與科技" }],
+  culture: [{ id: "culture", label: "奇觀與文化" }],
+  unemployment: [{ id: "prosperity", label: "所得與房價" }],
 };
 const advisorApp = () => (typeof window !== "undefined" && window.__app?.hasMode?.("advisor") ? window.__app : null);
 
@@ -172,83 +172,67 @@ function reportPopulation(rep, n, st, metros) {
   const since = yrs ? ` since ${yrs[0]}` : "";
   if (fin(n.growth)) rep.context.push(`${signedPct(n.growth)}${since} (Census population estimates)`);
   const emp = ratio(n.employed, n.population);
-  if (emp != null) rep.context.push(`${compact(n.employed)} employed, ${pct(emp)} of residents`);
+  if (emp != null) rep.context.push(`就業人口 ${compact(n.employed)} 人（占總人口 ${pct(emp)}）`);
 
   const g = (o) => o.growth;
   const row = (x, prefix = "") => ({
     label: `${prefix}${x.r.name}`, sub: x.r.kind === "city" ? x.r.sub : "", value: x.v, text: signedPct(x.v), tone: x.v >= 0 ? "good" : "bad",
   });
   const groups = [];
-  if (fin(n.growth)) groups.push({ rows: [{ label: "United States", value: n.growth, text: signedPct(n.growth), tone: n.growth >= 0 ? "good" : "bad", strong: true }] });
+  if (fin(n.growth)) groups.push({ rows: [{ label: "全臺灣", value: n.growth, text: signedPct(n.growth), tone: n.growth >= 0 ? "good" : "bad", strong: true }] });
   const extremes = (list, what) => {
     if (list.length < 2) return;
     const k = Math.min(3, Math.floor(list.length / 2));
     const top = list.slice(0, k), bottom = list.slice(-k).reverse();
-    groups.push({ title: `Fastest-growing ${what}`, rows: top.map((x) => row(x)) });
-    groups.push({ title: bottom.every((x) => x.v < 0) ? `Shrinking ${what}` : `Slowest-growing ${what}`, rows: bottom.map((x) => row(x)) });
+    groups.push({ title: `成長最快${what}`, rows: top.map((x) => row(x)) });
+    groups.push({ title: bottom.every((x) => x.v < 0) ? `減少最多${what}` : `成長最慢${what}`, rows: bottom.map((x) => row(x)) });
   };
-  extremes(sorted(st, g), "states");
-  extremes(sorted(metros, g, METRO_MIN), `metros (${compact(METRO_MIN)}+)`);
-  if (groups.length) rep.breakdown = { title: yrs ? `Population change ${yrs[0]}–${yrs[1]}` : "Population change", note: rep.scope.note, groups };
+  extremes(sorted(st, g), "縣市");
+  if (groups.length) rep.breakdown = { title: yrs ? `${yrs[0]}–${yrs[1]} 人口變化` : "人口變化", note: rep.scope.note, groups };
 
   rep.boards.modes = [
-    { id: "abs", label: "Largest", states: rank(st, (o) => o.population), metros: rank(metros, (o) => o.population) },
+    { id: "abs", label: "人口最多", states: rank(st, (o) => o.population), metros: rank(metros, (o) => o.population) },
     {
-      id: "rel", label: "Fastest growing", hint: `Population change${since}; metros of ${compact(METRO_MIN)}+ people.`,
-      states: rank(st, g, { fmt: signedPct, exact: (v) => signedPct(v, 2) }), metros: rank(metros, g, { fmt: signedPct, exact: (v) => signedPct(v, 2), min: METRO_MIN }),
+      id: "rel", label: "成長最快", hint: `${yrs ? `${yrs[0]}–${yrs[1]} ` : ""}戶籍人口變化率。`,
+      states: rank(st, g, { fmt: signedPct, exact: (v) => signedPct(v, 2) }), metros: rank(metros, g, { fmt: signedPct, exact: (v) => signedPct(v, 2) }),
     },
   ];
 }
 
 function reportUnemployment(rep, n, st, metros) {
   const u = (o) => o.unemployment;
-  if (fin(n.unemployment) && n.unemployment > 0) rep.context.push(`About 1 in ${Math.round(1 / n.unemployment)} people in the labour force is out of work`);
+  if (fin(n.unemployment) && n.unemployment > 0) rep.context.push(`約每 ${Math.round(1 / n.unemployment)} 位勞動力中有 1 位失業`);
   const ss = sorted(st, u);
-  if (ss.length >= 2) rep.context.push(`${rep.scope.note ? rep.scope.inMap : rep.scope.label} range from ${pct(ss.at(-1).v)} to ${pct(ss[0].v)}`);
+  if (ss.length >= 2) rep.context.push(`各縣市介於 ${pct(ss.at(-1).v)} 至 ${pct(ss[0].v)}`);
 
   const tone = (v) => (!fin(n.unemployment) || Math.abs(v / n.unemployment - 1) < 0.03 ? null : v > n.unemployment ? "bad" : "good");
-  const row = (label, x) => ({ label: `${label}: ${x.r.name}`, sub: x.r.kind === "city" ? x.r.sub : "", value: x.v, text: pct(x.v), tone: tone(x.v) });
-  const spread = (list) => (list.length >= 3 ? [row("Highest", list[0]), row("Median", list[Math.floor(list.length / 2)]), row("Lowest", list.at(-1))] : []);
+  const row = (label, x) => ({ label: `${label}：${x.r.name}`, sub: "", value: x.v, text: pct(x.v), tone: tone(x.v) });
+  const spread = (list) => (list.length >= 3 ? [row("最高", list[0]), row("中位", list[Math.floor(list.length / 2)]), row("最低", list.at(-1))] : []);
   const groups = [];
-  if (fin(n.unemployment)) groups.push({ rows: [{ label: "United States", value: n.unemployment, text: pct(n.unemployment), strong: true }] });
-  const sRows = spread(ss), mRows = spread(sorted(metros, u, BIG_METRO_MIN));
-  if (sRows.length) groups.push({ title: rep.scope.label, rows: sRows });
-  if (mRows.length) groups.push({ title: `Large metros (${compact(BIG_METRO_MIN)}+)`, rows: mRows });
-  if (groups.length) rep.breakdown = { title: "Spread", note: rep.scope.note, groups };
+  if (fin(n.unemployment)) groups.push({ rows: [{ label: "全臺灣", value: n.unemployment, text: pct(n.unemployment), strong: true }] });
+  const sRows = spread(ss);
+  if (sRows.length) groups.push({ title: "各縣市分佈", rows: sRows });
+  if (groups.length) rep.breakdown = { title: "縣市區間", note: rep.scope.note, groups };
 
-  const hint = `Metros of ${compact(BIG_METRO_MIN)}+ people.`;
   const o = { fmt: pct, exact: (v) => pct(v, 2) };
   rep.boards.modes = [
-    { id: "abs", label: "Highest", hint, states: rank(st, u, o), metros: rank(metros, u, { ...o, min: BIG_METRO_MIN }) },
-    { id: "rel", label: "Lowest", hint, states: rank(st, u, { ...o, asc: true }), metros: rank(metros, u, { ...o, asc: true, min: BIG_METRO_MIN }) },
+    { id: "abs", label: "失業率最高", states: rank(st, u, o), metros: rank(metros, u, o) },
+    { id: "rel", label: "失業率最低", states: rank(st, u, { ...o, asc: true }), metros: rank(metros, u, { ...o, asc: true }) },
   ];
 }
 
 function reportGold(rep, nation, n, st, metros) {
   const gdp = (o) => o.gdp ?? o.yields?.gold ?? null;
   const pp = ratio(rep.total, n.population);
-  // GDP and population can come from different years (BEA GDP lags the ACS by a year): say which.
-  const popYear = fin(nation.year) ? nation.year : null;
-  const years = n.gdp_year && popYear && n.gdp_year !== popYear ? `${n.gdp_year} GDP ÷ ${popYear} residents` : "GDP ÷ residents";
-  if (pp != null) rep.context.push(`${money(pp)} per person (${years})`);
-  if (n.gdp_year) rep.context.push(`Year ${n.gdp_year}, current dollars`);
-
-  const rows = Object.entries(n.gdp_by_industry || {})
-    .filter(([, v]) => fin(v))
-    .sort((a, b) => b[1] - a[1])
-    .map(([k, v]) => {
-      const { label, full } = industryLabel(nation, k, true);
-      const s = ratio(v, rep.total);
-      return { label, full, iconId: industryIcon(k), emoji: DISTRICT_ICON[k] || "•", value: v, text: money(v), sub: s != null ? pct(s) : "" };
-    });
-  if (rows.length) rep.breakdown = { title: "GDP by industry", groups: [{ rows }], collapseAfter: GDP_ROWS };
+  if (pp != null) rep.context.push(`人均約 ${money(pp)}`);
+  if (n.gdp_year) rep.context.push(`${n.gdp_year} 年財政部營利事業銷售額（新台幣）`);
 
   const perPerson = (o) => ratio(gdp(o), o.population);
   rep.boards.modes = [
-    { id: "abs", label: "Largest GDP", states: rank(st, gdp, { fmt: money, exact: dollars }), metros: rank(metros, gdp, { fmt: money, exact: dollars }) },
+    { id: "abs", label: "總銷售額最高", states: rank(st, gdp, { fmt: money, exact: dollars }), metros: rank(metros, gdp, { fmt: money, exact: dollars }) },
     {
-      id: "rel", label: "Per person", hint: `${years}; metros of ${compact(METRO_MIN)}+ people.`,
-      states: rank(st, perPerson, { fmt: money, exact: dollars }), metros: rank(metros, perPerson, { fmt: money, exact: dollars, min: METRO_MIN }),
+      id: "rel", label: "人均最高", hint: "營利事業銷售額 ÷ 戶籍總人口。",
+      states: rank(st, perPerson, { fmt: money, exact: dollars }), metros: rank(metros, perPerson, { fmt: money, exact: dollars }),
     },
   ];
 }
@@ -256,9 +240,9 @@ function reportGold(rep, nation, n, st, metros) {
 function reportJobs(rep, def, nation, n, st, metros) {
   const key = def.key;
   const nShare = ratio(rep.total, n.employed);
-  if (nShare != null) rep.context.push(`${pct(nShare)} of the ${compact(n.employed)} employed`);
+  if (nShare != null) rep.context.push(`占全國 ${compact(n.employed)} 就業人口之 ${pct(nShare)}`);
   const per1k = ratio(rep.total, n.population);
-  if (per1k != null) rep.context.push(`${Math.round(per1k * 1000)} per 1,000 residents`);
+  if (per1k != null) rep.context.push(`每千人約 ${Math.round(per1k * 1000)} 人從事此業`);
 
   const inds = Array.isArray(def.yield?.industries) ? def.yield.industries : [];
   const gdpOf = inds.map((k) => n.gdp_by_industry?.[k]);

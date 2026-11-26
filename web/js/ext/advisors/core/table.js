@@ -99,7 +99,7 @@ export function createTable(host, opts) {
         return `<span class="td ${c.align === "l" ? "l" : "r"}${c.bar ? " hasbar" : ""}" role="cell"${tip ? ` title="${esc(tip)}"` : ""}>${inner}</span>`;
       }).join("")}</div>`;
     }
-    space.innerHTML = html || `<div class="adv-empty pad">${esc(opts.empty || "No rows.")}</div>`;
+    space.innerHTML = html || `<div class="adv-empty pad">${esc(opts.empty || "無符合資料。")}</div>`;
   }
 
   body.addEventListener("scroll", rafThrottle(() => renderRows()), { passive: true });

@@ -175,11 +175,9 @@ export function mount(ctx) {
       <p>${esc(ty.description)}</p><span class="src">來源：${esc(src ? `${src.title}（${src.vintage || src.publisher}）` : ty.source)}</span></div></div>`;
   }).join("")}`).join("");
 
-  el.insertAdjacentHTML("beforeend", sourcesHtml(data, ["eia_860m", "eia_coal", "msha_mines", "eia_shale_plays"], [
-    "Only sites above each type's threshold are mapped (e.g. gas plants of 1,500 MW or more, wind clustered per hex at 500 MW or more), so totals are <b>not</b> state or national capacity.",
-    "Capacity is nameplate-style net summer capacity (MW), not how much electricity a site produces: a 1,000 MW solar farm generates far less in a year than a 1,000 MW nuclear plant.",
-    "Mines are sized by employees (MSHA) or coal output (EIA); oil and gas plays by area. These units cannot be added to MW.",
-    "A site counts in the state its operator files it under; a few border sites sit in a hex another state owns.",
+  el.insertAdjacentHTML("beforeend", sourcesHtml(data, ["taipower"], [
+    "僅計入地圖上標示之台灣主要大型發電廠與離岸風電／太陽光電聚落裝置容量（MW），非全國總裝置容量。",
+    "裝置容量代表最大發電能力，非實際年發電量（如再生能源與核能／燃氣容量因數不同）。",
   ]));
 
   // --- map ------------------------------------------------------------------------------------------------------
@@ -219,10 +217,10 @@ export function mount(ctx) {
     const sIdx = st.state ? stateIdx.get(st.state) : null;
     link.base({ dimOthers: true, states: sIdx != null ? new Set([sIdx]) : undefined });
     stateChip.innerHTML = st.state
-      ? `<span class="adv-fchip">State: <b>${esc(states[sIdx]?.name || st.state)}</b> · ${int(vis.length)} sites<button type="button" data-clear-state aria-label="Clear the state filter">✕</button></span>`
+      ? `<span class="adv-fchip">縣市：<b>${esc(states[sIdx]?.name || st.state)}</b> · ${int(vis.length)} 座<button type="button" data-clear-state aria-label="清除縣市篩選">✕</button></span>`
       : "";
     const r = (v) => 24 * Math.sqrt(v / vMax);
-    legendBox.innerHTML = sizeLegend([250, 1000, 4000].filter((v) => v <= vMax * 1.2), r, (v) => `${int(v)} MW`, "Circle area = capacity");
+    legendBox.innerHTML = sizeLegend([250, 1000, 4000].filter((v) => v <= vMax * 1.2), r, (v) => `${int(v)} MW`, "圓圈面積 = 裝置容量");
     mixBars.setSelected(st.on.size === 1 ? [...st.on][0] : null);
   }
   apply();

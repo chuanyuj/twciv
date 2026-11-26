@@ -44,12 +44,10 @@ export function growthLens(data, by = "metros") {
       vals = data.levels.metros.rows.map((r) => r.v.growth);
     }
     return {
-      id: `adv-growth-${by}`, group: "people", name: by === "states" ? "Growth by state" : "Growth by metro",
-      icon: "l-people", emoji: "📈", unit: "population change", format: "pct", scale: "linear",
-      domain: symDomain(vals), ramp: GROWTH_RAMP, higher_is: "neutral", source: "pep_population",
-      description: by === "states"
-        ? `Population change ${yrs} by state (Census population estimates).`
-        : `Population change ${yrs} by metro and micro area (Census population estimates). Grey hexes lie outside them.`,
+      id: `adv-growth-${by}`, group: "people", name: by === "states" ? "各縣市人口成長" : "都會人口成長",
+      icon: "l-people", emoji: "📈", unit: "人口變化率", format: "pct", scale: "linear",
+      domain: symDomain(vals), ramp: GROWTH_RAMP, higher_is: "neutral", source: "moi_ris",
+      description: `${yrs} 年各縣市戶籍人口變化率（內政部戶政司）。`,
       values,
     };
   });
@@ -65,10 +63,10 @@ export function scienceLens(data) {
     for (const [cell, city] of cellMetro) if (owner[cell] >= 0) values[cell] = share(city);
     const sci = app.data.nation?.yields?.find((y) => y.key === "science");
     return {
-      id: "adv-science-share", group: "knowledge", name: "Science jobs",
-      icon: "l-degrees", emoji: "🔬", unit: "of employed residents", format: "pct", scale: "linear",
-      domain: robust(data.levels.metros.rows.map((r) => share(r.ref))), ramp: SCIENCE_RAMP, higher_is: "neutral", source: "acs_1yr",
-      description: `${sci?.label || "Science"} workers as a share of employed residents, by metro and micro area (counted where they live). Grey hexes lie outside them.`,
+      id: "adv-science-share", group: "knowledge", name: "科技研發就業占比",
+      icon: "l-degrees", emoji: "🔬", unit: "占總就業人口", format: "pct", scale: "linear",
+      domain: robust(data.levels.metros.rows.map((r) => share(r.ref))), ramp: SCIENCE_RAMP, higher_is: "neutral", source: "dgbas",
+      description: `${sci?.label || "科技研發"}就業人數占各縣市總就業人口比例。`,
       values,
     };
   });

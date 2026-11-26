@@ -23,9 +23,9 @@ export function siteLabel() {
 export const IMG_W = 1600;
 export const IMG_H = 900;
 export const CAPTION_H = 118;
-const SERIF = '"Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif';
-const SANS = '-apple-system, "Segoe UI", system-ui, sans-serif';
-const CREDIT = "Data: Census ACS, BEA, NOAA, USGS/MRLC, EIA, Natural Earth";
+const SERIF = '"Noto Serif TC", "PingFang TC", "Songti TC", "Palatino Linotype", Georgia, serif';
+const SANS = '"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", -apple-system, system-ui, sans-serif';
+const CREDIT = "資料來源：內政部戶政司、財政部、主計總處、台電、NOAA ETOPO1、Natural Earth";
 
 async function copyText(text) {
   try {
@@ -115,11 +115,11 @@ export function composeImage(info, { height = IMG_H } = {}) {
   ctx.fillStyle = "#ecd08e";
   ctx.font = `bold 36px ${SERIF}`;
   spaced(ctx, 5);
-  ctx.fillText("UNITED STATES", 112, cy + 2);
+  ctx.fillText("臺灣文明地圖", 112, cy + 2);
   spaced(ctx, 0);
   ctx.fillStyle = "#b9ab88";
-  ctx.font = `italic 17px ${SERIF}`;
-  ctx.fillText("A strategy-map atlas of the real economy", 114, cy + 28);
+  ctx.font = `17px ${SERIF}`;
+  ctx.fillText("臺灣 22 縣市與 368 鄉鎮市區互動策略地圖", 114, cy + 28);
 
   // Lens + legend ramp
   const mx = 640;
@@ -130,7 +130,7 @@ export function composeImage(info, { height = IMG_H } = {}) {
   ctx.fillStyle = "#ecd08e";
   ctx.font = `24px ${SERIF}`;
   spaced(ctx, 1.5);
-  ctx.fillText((lens ? lens.name : "Terrain").toUpperCase() + (lens ? " LENS" : ""), mx + 50, cy - 8);
+  ctx.fillText((lens ? lens.name + "濾鏡" : "預設地形"), mx + 50, cy - 8);
   spaced(ctx, 0);
   if (lens?.ramp?.length) {
     const rx = mx + 50, ry = cy + 4, rw = 330, rh = 12;
@@ -150,7 +150,7 @@ export function composeImage(info, { height = IMG_H } = {}) {
   } else {
     ctx.font = `15px ${SANS}`;
     ctx.fillStyle = "#b9ab88";
-    ctx.fillText("Land cover, relief, rivers and resources", mx + 50, cy + 16);
+    ctx.fillText("地形起伏、河川水系與主力電廠資源", mx + 50, cy + 16);
   }
 
   // Selection, credits, site
@@ -255,8 +255,8 @@ export function initShare(opts) {
       opts.beforeCopy?.();
       const link = location.href;
       if (await copyText(link)) {
-        status.textContent = "Link copied to the clipboard";
-        opts.onToast?.("Link copied");
+        status.textContent = "已複製連結至剪貼簿";
+        opts.onToast?.("已複製連結");
       } else {
         status.textContent = "請複製以下連結：";
         urlBox.hidden = false;
@@ -265,7 +265,7 @@ export function initShare(opts) {
         urlBox.select();
       }
     } else if (b.dataset.act === "image") {
-      status.textContent = "Drawing the map…";
+      status.textContent = "正在繪製地圖圖片…";
       await new Promise((r) => setTimeout(r, 30)); // let the status paint
       try {
         const cv = composeImage(opts.getInfo());
@@ -278,10 +278,10 @@ export function initShare(opts) {
         a.click();
         a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-        status.textContent = `Saved ${a.download}`;
+        status.textContent = `已下載 ${a.download}`;
       } catch (err) {
         console.warn(err);
-        status.textContent = "Could not create the image in this browser.";
+        status.textContent = "此瀏覽器無法產生圖片。";
       }
     }
   });

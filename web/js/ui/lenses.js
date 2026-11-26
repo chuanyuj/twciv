@@ -120,9 +120,9 @@ export function initLensDock(opts) {
       </button>`;
     const sec = (g, items) => !items.length ? "" : `<section class="lp-group"><h4>${icon(g.icon || `g-${g.id}`, "", { size: 14 })}${esc(g.name)}</h4>
         <div class="lp-tiles">${items.map(tile).join("")}</div></section>`;
-    picker.innerHTML = `<div class="lp-head"><span>Choose a lens</span><button class="icon-btn lp-close" aria-label="Close lens picker">${icon("close", "✕", { size: 12 })}</button></div>
+    picker.innerHTML = `<div class="lp-head"><span>選擇地圖濾鏡</span><button class="icon-btn lp-close" aria-label="關閉濾鏡選單">${icon("close", "✕", { size: 12 })}</button></div>
       <div class="lp-body">
-      ${sec({ id: "base", name: "Base map", icon: "terrain" }, [TERRAIN])}
+      ${sec({ id: "base", name: "基礎地圖", icon: "terrain" }, [TERRAIN])}
       ${groups.map((g) => sec(g, lenses.filter((l) => (g.id === "__other" ? !known.has(l.group) : l.group === g.id)))).join("")}
       </div>`;
   }
@@ -289,13 +289,13 @@ export function initLensDock(opts) {
     const ticks = [0, 0.25, 0.5, 0.75, 1]
       .map((t, k) => `<span style="left:${t * 100}%;transform:translateX(-${t * 100}%)">${esc(formatLensTick(l, t, k))}</span>`)
       .join("");
-    const hib = l.higher_is === "good" ? `<span class="hib good">▲ Higher is better</span>`
-      : l.higher_is === "bad" ? `<span class="hib bad">▲ Higher is worse</span>` : "";
+    const hib = l.higher_is === "good" ? `<span class="hib good">▲ 數值越高越佳</span>`
+      : l.higher_is === "bad" ? `<span class="hib bad">▲ 數值越高負擔越重</span>` : "";
     legend.hidden = false;
     legend.innerHTML = `
       <div class="lg-head"><span class="lg-ic">${glyph(l, 18)}</span><span class="title">${esc(l.name)}</span>
-        <button class="icon-btn lg-more" aria-expanded="${legendExpanded}" aria-label="Show the full legend" title="Details">${legendExpanded ? "−" : "+"}</button>
-        <button class="icon-btn lg-close" aria-label="Turn the lens off (back to terrain)" title="Back to terrain">${icon("close", "✕", { size: 11 })}</button></div>
+        <button class="icon-btn lg-more" aria-expanded="${legendExpanded}" aria-label="展開完整圖例" title="詳細說明">${legendExpanded ? "−" : "+"}</button>
+        <button class="icon-btn lg-close" aria-label="關閉濾鏡（返回地形）" title="返回預設地形">${icon("close", "✕", { size: 11 })}</button></div>
       <div class="desc">${esc(l.description || l.unit || "")}</div>
       ${noteHtml(l)}
       <div class="lg-scale" role="slider" tabindex="0" aria-label="Highlight a range of ${esc(l.name)} values. Hover or drag; arrow keys move the highlight, Escape clears it."

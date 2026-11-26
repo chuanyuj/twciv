@@ -57,12 +57,12 @@ export async function mount(ctx) {
   const L = () => data.levels[st.level];
 
   // --- controls -------------------------------------------------------------------------------------------------
-  const top = section(el, { title: "Explore the data", note: "Choose what to compare, filter it, sort the table, and plot any two columns. Hover a row or a point to see it on the map; drag across the chart to select a group." });
+  const top = section(el, { title: "自由探索資料", note: "自由切換 22 縣市或 368 鄉鎮市區，自訂篩選條件、排序表格並繪製任意兩欄位散佈圖；拖曳圖表可框選並於地圖高亮。" });
   const lvRow = document.createElement("div");
   lvRow.className = "adv-row";
   top.appendChild(lvRow);
   segmented(lvRow, {
-    label: "Level", value: st.level,
+    label: "層級", value: st.level,
     options: avail.map((k) => ({ value: k, label: data.levels[k].label })),
     onChange: (v) => { st.level = v; st.filters = st.filters.filter((f) => L().field(f.key)); st.sel = null; persist(); rebuild(); },
   });
@@ -90,7 +90,7 @@ export async function mount(ctx) {
   let table = null;
 
   // --- chart ----------------------------------------------------------------------------------------------------
-  const cBody = section(el, { title: "Chart" });
+  const cBody = section(el, { title: "散佈圖" });
   const axes = document.createElement("div");
   axes.className = "adv-axes";
   cBody.appendChild(axes);

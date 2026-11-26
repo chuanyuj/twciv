@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>twciv — 臺灣文明地圖｜各縣市與鄉鎮市區資料視覺化</title>
+  <meta name="description" content="以 4X 策略遊戲地圖呈現真實臺灣：六角地形、22 縣市與 368 鄉鎮市區人口、所得、學歷、高齡、發電廠與奇觀，資料全數取自政府開放資料。">
+  <meta name="theme-color" content="#131e2a">
+  <link rel="canonical" href="https://twciv.jeffjhuang.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="twciv 臺灣文明地圖">
+  <meta property="og:title" content="臺灣文明地圖 — 各縣市與 368 鄉鎮市區互動策略地圖">
+  <meta property="og:description" content="以 4X 策略遊戲地圖呈現真實臺灣：22 縣市、368 鄉鎮市區人口、高齡、大專學歷、綜所稅中位數、主力電廠與奇觀。">
+  <meta property="og:url" content="https://twciv.jeffjhuang.com/">
+  <meta property="og:image" content="https://twciv.jeffjhuang.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="臺灣文明地圖 — 各縣市與 368 鄉鎮市區互動策略地圖">
+  <meta name="twitter:image" content="https://twciv.jeffjhuang.com/og-image.png">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='31' fill='%23120d06'/%3E%3Ccircle cx='32' cy='32' r='29' fill='%23c9a45c'/%3E%3Ccircle cx='32' cy='32' r='24' fill='%232a4d8f'/%3E%3Cpath fill='%23f8f0d8' d='M32 14l4.9 11.3 12.2 1.1-9.3 8.1 2.8 12-10.6-6.4-10.6 6.4 2.8-12-9.3-8.1 12.2-1.1z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand" title="臺灣文明地圖"><span class="brand-emblem" aria-hidden="true">★</span><span class="brand-text">臺灣各縣市</span></div>
+    <div id="yields" class="yields" aria-label="全國產出"></div>
+    <div class="spacer"></div>
+    <div class="search" role="search">
+      <span class="search-ic" aria-hidden="true"></span>
+      <input id="search-input" type="search" placeholder="搜尋縣市與鄉鎮市區" autocomplete="off" spellcheck="false"
+        role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results" aria-label="搜尋縣市與鄉鎮市區 (/ 或 Ctrl K)">
+      <kbd class="search-kbd" aria-hidden="true">/</kbd>
+    </div>
+    <div id="turn" class="turn"></div>
+    <div class="tb-buttons">
+      <button id="btn-share" class="btn" aria-haspopup="dialog" aria-expanded="false" aria-label="分享目前視角" title="分享：複製連結或下載地圖圖片"></button>
+      <button id="btn-help" class="btn btn-icon" aria-label="鍵盤與滑鼠操作說明" title="操作說明 (?)"></button>
+      <button id="btn-pedia" class="btn" aria-label="開啟資料年鑑" title="查看各項數據定義與官方來源"></button>
+    </div>
+  </header>
+
+  <canvas id="map" role="img" aria-label="臺灣各縣市六角格地圖"></canvas>
+
+  <div id="tooltip" class="tooltip" hidden></div>
+  <aside id="city-panel" class="panel" hidden role="region" aria-label="詳細資訊"></aside>
+
+  <div id="lens-area">
+    <div id="lens-picker" class="panel lens-picker" hidden role="dialog" aria-label="選擇地圖濾鏡"></div>
+    <div id="legend" class="panel legend" hidden role="group" aria-label="濾鏡圖例"></div>
+    <div id="lens-dock" class="panel lens-dock" role="toolbar" aria-label="地圖濾鏡">
+      <button id="btn-res" class="lens-btn res-toggle" aria-pressed="true" aria-label="顯示或隱藏電廠資源 (R)" title="顯示或隱藏地圖上的發電廠資源 (R)" hidden></button>
+      <div id="lens-quick" class="lens-quick"></div>
+      <button id="btn-lenses" class="lens-btn lens-more" aria-haspopup="dialog" aria-expanded="false" aria-controls="lens-picker"></button>
+    </div>
+  </div>
+
+  <div id="minimap-wrap" class="panel"><canvas id="minimap" aria-label="小地圖：點擊快速跳轉" role="img"></canvas></div>
+  <button id="btn-minimap" class="panel minimap-toggle" aria-pressed="false" aria-controls="minimap-wrap" aria-label="顯示小地圖"></button>
+
+  <div id="search-results" class="panel search-results" role="listbox" aria-label="搜尋結果" hidden></div>
+  <div id="share-pop" class="panel share-pop" role="dialog" aria-label="分享" hidden></div>
+  <div id="yield-report" class="panel yield-report" role="dialog" aria-label="全國產出報告" tabindex="-1" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="announce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <div id="pedia" class="modal" hidden>
+    <div class="modal-card panel" role="dialog" aria-modal="true" aria-label="資料年鑑">
+      <button class="close icon-btn" data-close aria-label="關閉資料年鑑">✕</button>
+      <nav id="pedia-nav" aria-label="年鑑目錄"></nav>
+      <article id="pedia-body"></article>
+    </div>
+  </div>
+
+  <div id="help" class="modal" hidden>
+    <div class="help-card panel" role="dialog" aria-modal="true" aria-labelledby="help-title"></div>
+  </div>
+
+  <div id="loading">正在測繪臺灣疆域…</div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Large downloaded raw datasets (reproducible via python3 pipeline/fetch_twciv.py)
+data/raw/*
+!data/raw/manifest.json
+data/interim/
+
+# Python / OS caches
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+*.zip

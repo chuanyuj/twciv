@@ -472,56 +472,74 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 
 /* ---------- phones ---------- */
 @media (max-width: 700px) {
-  #topbar { gap: 10px; padding: 0 8px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  button { touch-action: manipulation; }
+  #topbar {
+    gap: 6px; padding: 0 8px; height: 46px;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  :root { --topbar-h: 46px; }
   #topbar::-webkit-scrollbar { display: none; }
   .brand-text { display: none; }
   .spacer { display: none; }
-  .search { flex: 0 0 160px; min-width: 160px; order: -1; margin-left: 4px; }
-  .brand { order: -2; }
+  .brand { order: -3; flex: none; }
+  .search { flex: 0 0 132px; min-width: 120px; order: -2; margin-left: 2px; }
+  #search-input { font-size: 16px; padding: 4px 6px 4px 26px; }
   .search-kbd { display: none; }
-  .yields { gap: 10px; }
-  /* Fades at the ends of the scrolling bar (ui/topbar.js sets .more-l / .more-r). Sticky pseudo-elements stay at
-     the visible edges; the negative margins cancel their width and the 10px flex gap so they add no scroll width. */
+  .tb-buttons { order: -1; flex: none; gap: 4px; }
+  .tb-buttons .btn, .btn-ext { min-height: 34px; min-width: 34px; padding: 5px 8px; }
+  .yields { gap: 8px; flex: none; }
+  .yield { font-size: 12.5px; padding: 4px 2px; }
+  /* Fades at the ends of the scrolling bar (ui/topbar.js sets .more-l / .more-r). */
   #topbar::before, #topbar::after {
-    content: ""; position: sticky; flex: none; align-self: stretch; width: 30px; z-index: 1; pointer-events: none;
+    content: ""; position: sticky; flex: none; align-self: stretch; width: 24px; z-index: 1; pointer-events: none;
     opacity: 0; transition: opacity .15s;
   }
-  #topbar::before { order: -3; left: 0; margin-right: -40px; background: linear-gradient(90deg, #1b2a3a 20%, rgba(27,42,58,0)); }
-  #topbar::after { order: 99; right: 0; margin-left: -40px; background: linear-gradient(270deg, #1b2a3a 20%, rgba(27,42,58,0)); }
+  #topbar::before { order: -4; left: 0; margin-right: -30px; background: linear-gradient(90deg, #1b2a3a 20%, rgba(27,42,58,0)); }
+  #topbar::after { order: 99; right: 0; margin-left: -30px; background: linear-gradient(270deg, #1b2a3a 20%, rgba(27,42,58,0)); }
   #topbar.more-l::before, #topbar.more-r::after { opacity: 1; }
 
   #lens-area { left: 0; right: 0; bottom: 0; gap: 6px; align-items: stretch; z-index: 13; }
   body.panel-open #lens-area { right: 0; }
-  .lens-dock { border-radius: 10px 10px 0 0; border-left: none; border-right: none; border-bottom: none; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
-  .lens-quick { flex: 1; }
+  .lens-dock {
+    border-radius: 12px 12px 0 0; border-left: none; border-right: none; border-bottom: none;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); gap: 5px; max-width: 100vw;
+  }
+  .lens-quick {
+    flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    gap: 5px;
+  }
+  .lens-quick::-webkit-scrollbar { display: none; }
+  .lens-btn { min-height: 36px; padding: 6px 9px; font-size: 12.5px; white-space: nowrap; flex: none; }
   .res-toggle span, .lens-more span:not(.caret) { display: none; }
   .map-layers-pop { margin: 0 8px; width: auto; align-self: stretch; }
-  .ml-row { min-height: 42px; }
-  .legend { width: auto; margin: 0 8px; }
+  .ml-row { min-height: 44px; font-size: 14px; }
+  .legend { width: auto; margin: 0 8px; padding: 8px 10px; }
   .legend .desc { display: none; }
-  .lens-picker { width: auto; margin: 0 8px; max-height: 60vh; }
+  .lens-picker { width: auto; margin: 0 8px; max-height: 62dvh; }
   .lp-body { grid-template-columns: 1fr; }
+  .lp-tile { min-height: 44px; }
 
-  #minimap-wrap { display: none; bottom: 64px; left: 8px; }
+  #minimap-wrap { display: none; bottom: 70px; left: 8px; }
   body.minimap-on #minimap-wrap { display: block; }
   .minimap-toggle {
-    display: grid; place-items: center; position: fixed; left: 8px; bottom: 60px; z-index: 11; width: 38px; height: 38px; padding: 0;
+    display: grid; place-items: center; position: fixed; left: 8px; bottom: 68px; z-index: 11; width: 40px; height: 40px; padding: 0;
     cursor: pointer; color: var(--gold-bright); border-radius: 50%;
   }
-  body.minimap-on .minimap-toggle { bottom: auto; top: 50px; }
+  body.minimap-on .minimap-toggle { bottom: auto; top: 56px; }
   body.panel-open .minimap-toggle, body.panel-open #minimap-wrap { display: none; }
 
   #city-panel {
-    top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 55vh; height: 55dvh; z-index: 25;
-    border-radius: 14px 14px 0 0; border-left: none; border-right: none; border-bottom: none;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom)); transition: transform .18s ease-out;
-    box-shadow: 0 -8px 30px rgba(0,0,0,.55);
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 66vh; height: 66dvh; z-index: 25;
+    border-radius: 16px 16px 0 0; border-left: none; border-right: none; border-bottom: none;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom)); transition: transform .18s ease-out;
+    box-shadow: 0 -8px 30px rgba(0,0,0,.55); -webkit-overflow-scrolling: touch;
   }
   #city-panel.dragging-sheet { transition: none; }
   .app-dock {
-    top: auto; left: 0; right: 0; bottom: 0; width: auto; max-width: none; height: 55vh; height: 55dvh; z-index: 24;
-    border-radius: 14px 14px 0 0; border: 1px solid var(--line); border-bottom: none; border-left: none; border-right: none;
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; max-width: none; height: 68vh; height: 68dvh; z-index: 24;
+    border-radius: 16px 16px 0 0; border: 1px solid var(--line); border-bottom: none; border-left: none; border-right: none;
     padding-bottom: env(safe-area-inset-bottom); box-shadow: 0 -8px 30px rgba(0,0,0,.55);
+    -webkit-overflow-scrolling: touch;
   }
   .sheet-grip { display: block; position: sticky; top: 0; z-index: 2; height: 18px; margin-bottom: -18px; touch-action: none; }
   .sheet-grip::before { content: ""; position: absolute; left: 50%; top: 6px; width: 44px; height: 4px; margin-left: -22px; border-radius: 2px; background: rgba(201,164,92,.6); }

@@ -337,6 +337,12 @@ body.adv-tip-on #tooltip { display: none !important; }
   .adv-swatches { grid-template-columns: 1fr; }
   .adv-srow { grid-template-columns: 90px minmax(0, 1fr) 56px; }
   .adv-cols-pop { width: min(300px, calc(100vw - 40px)); }
+  .adv-search input, .adv-select select { font-size: 16px; }
+  .adv-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .adv-tabs { overflow-x: auto; scrollbar-width: none; }
+  .adv-tabs::-webkit-scrollbar { display: none; }
+  .adv-tabs button { width: 34px; height: 34px; flex: none; }
+  .adv-close { width: 34px; height: 34px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .adv-tabs button, .adv-card { transition: none; }

@@ -391,6 +391,7 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 #minimap-wrap { position: fixed; left: calc(12px + var(--dock-left, 0px)); bottom: 12px; z-index: 11; padding: 5px; }
 #minimap { display: block; cursor: pointer; border-radius: 3px; touch-action: none; }
 .minimap-toggle { display: none; }
+.minimap-close { display: none; }
 
 /* ---------- modals: civilopedia + help ---------- */
 .modal { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.55); display: grid; place-items: center; }
@@ -515,13 +516,18 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
   .lp-body { grid-template-columns: 1fr; }
   .lp-tile { min-height: 44px; }
 
-  #minimap-wrap { display: none; bottom: 70px; left: 8px; }
+  #minimap-wrap { display: none; bottom: 72px; left: 8px; padding: 6px; z-index: 14; }
   body.minimap-on #minimap-wrap { display: block; }
+  .minimap-close {
+    display: grid; place-items: center; position: absolute; top: -10px; right: -10px; z-index: 2;
+    width: 28px; height: 28px; border-radius: 50%; background: #1c2836; border: 1px solid var(--gold);
+    color: var(--gold-bright); font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
   .minimap-toggle {
     display: grid; place-items: center; position: fixed; left: 8px; bottom: 68px; z-index: 11; width: 40px; height: 40px; padding: 0;
     cursor: pointer; color: var(--gold-bright); border-radius: 50%;
   }
-  body.minimap-on .minimap-toggle { bottom: auto; top: 56px; }
+  body.minimap-on .minimap-toggle { display: none; }
   body.panel-open .minimap-toggle, body.panel-open #minimap-wrap { display: none; }
 
   #city-panel {

@@ -832,16 +832,24 @@ async function main() {
     sync();
   }
   const mmBtn = document.getElementById("btn-minimap");
+  const mmClose = document.getElementById("btn-minimap-close");
+  const setMinimap = (on) => {
+    document.body.classList.toggle("minimap-on", on);
+    if (mmBtn) {
+      mmBtn.setAttribute("aria-pressed", String(on));
+      mmBtn.setAttribute("aria-label", on ? "關閉小地圖" : "顯示小地圖");
+      mmBtn.innerHTML = on ? icon("close", "✕", { size: 16 }) : icon("terrain", "🗺️", { size: 18 });
+    }
+    if (on) minimap.draw();
+  };
   if (mmBtn) {
     mmBtn.innerHTML = icon("terrain", "🗺️", { size: 18 });
-    mmBtn.onclick = () => {
-      const on = !document.body.classList.contains("minimap-on");
-      document.body.classList.toggle("minimap-on", on);
-      mmBtn.setAttribute("aria-pressed", String(on));
-      mmBtn.setAttribute("aria-label", on ? "Hide the minimap" : "Show the minimap");
-      minimap.draw();
-    };
+    mmBtn.onclick = () => setMinimap(!document.body.classList.contains("minimap-on"));
   }
+  if (mmClose) mmClose.onclick = () => setMinimap(false);
+  canvas.addEventListener("pointerdown", () => {
+    if (isMobile() && document.body.classList.contains("minimap-on")) setMinimap(false);
+  });
 
   // Map layer switches (app.ui.addMapToggle), in a menu next to the Resources toggle; kept in the hash (layers=).
   const mapToggles = createMapToggles({

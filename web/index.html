@@ -55,8 +55,11 @@
     </div>
   </div>
 
-  <div id="minimap-wrap" class="panel"><canvas id="minimap" aria-label="小地圖：點擊快速跳轉" role="img"></canvas></div>
-  <button id="btn-minimap" class="panel minimap-toggle" aria-pressed="false" aria-controls="minimap-wrap" aria-label="顯示小地圖"></button>
+  <div id="minimap-wrap" class="panel">
+    <button id="btn-minimap-close" class="icon-btn minimap-close" aria-label="關閉小地圖" title="關閉小地圖">✕</button>
+    <canvas id="minimap" aria-label="小地圖：點擊快速跳轉" role="img"></canvas>
+  </div>
+  <button id="btn-minimap" class="panel minimap-toggle" aria-pressed="false" aria-controls="minimap-wrap" aria-label="顯示小地圖" title="小地圖"></button>
 
   <div id="search-results" class="panel search-results" role="listbox" aria-label="搜尋結果" hidden></div>
   <div id="share-pop" class="panel share-pop" role="dialog" aria-label="分享" hidden></div>

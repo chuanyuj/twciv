@@ -48,7 +48,7 @@ export function mount(ctx) {
     + sizeLegend([1e11, 1e12, 1e13].filter((v) => v <= gMax), (v) => 32 * Math.sqrt(v / gMax), money, "圓圈面積 = 全年銷售額"));
 
   // --- 縣市排行 ---
-  const lBody = section(el, { title: "22 縣市經濟產值排行", note: "可切換總銷售額、人均銷售額或 2021–2024 人口成長率排序。" });
+  const lBody = section(el, { title: "22 縣市經濟產值排行", note: "可切換總銷售額、人均銷售額或 2021–2025 人口成長率排序。" });
   segmented(lBody, {
     label: "排序", value: "gdp",
     options: [{ value: "gdp", label: "總銷售額" }, { value: "gdp_pc", label: "人均銷售額" }, { value: "growth", label: "人口成長" }],
@@ -94,7 +94,7 @@ export function mount(ctx) {
   });
 
   // --- 人均產值 vs 人口成長散佈圖 ---
-  const scBody = section(el, { title: "人均產值 × 人口成長", note: "橫軸為人均營利事業銷售額，縱軸為 2021–2024 人口成長率，圓點大小為人口數。可框選並與地圖聯動。" });
+  const scBody = section(el, { title: "人均產值 × 人口成長", note: "橫軸為人均營利事業銷售額，縱軸為 2021–2025 人口成長率，圓點大小為人口數。可框選並與地圖聯動。" });
   const scatter = createScatter(scBody, {
     points: rows.map((r) => ({ key: r.key, x: r.v.gdp_pc, y: r.v.growth, s: r.v.population, c: r.v.median_income, label: r.ref.full || r.name, sub: "", row: r })),
     height: 280,

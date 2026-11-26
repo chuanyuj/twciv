@@ -68,7 +68,7 @@ export function createTable(host, opts) {
         return dir * (va - vb);
       });
     }
-    if (cnt) cnt.textContent = `${view.length.toLocaleString("en-US")} of ${all.length.toLocaleString("en-US")}`;
+    if (cnt) cnt.textContent = `${view.length.toLocaleString("zh-TW")} / ${all.length.toLocaleString("zh-TW")} 筆`;
     const maxH = opts.maxHeight || 340;
     const h = Math.min(maxH, Math.max(rowH * 2, view.length * rowH + 2));
     body.style.height = `${h}px`;

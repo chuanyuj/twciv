@@ -284,11 +284,13 @@ export function sizeLegend(values, r, fmt = String, label = "") {
   const H = Math.ceil(Math.max(...rs) * 2 + 4);
   let x = 4;
   const circles = values.map((v, i) => {
+    const txt = String(fmt(v));
+    const txtW = [...txt].reduce((a, ch) => a + (ch.charCodeAt(0) > 255 ? 11.5 : 7), 0);
     const cx = x + rs[i];
-    x += rs[i] * 2 + 26;
-    return `<circle cx="${cx.toFixed(1)}" cy="${(H - rs[i] - 2).toFixed(1)}" r="${rs[i].toFixed(1)}"/><text x="${(cx + rs[i] + 3).toFixed(1)}" y="${H - 3}">${esc(fmt(v))}</text>`;
+    x += rs[i] * 2 + Math.max(32, txtW + 16);
+    return `<circle cx="${cx.toFixed(1)}" cy="${(H - rs[i] - 2).toFixed(1)}" r="${rs[i].toFixed(1)}"/><text x="${(cx + rs[i] + 4).toFixed(1)}" y="${H - 3}">${esc(txt)}</text>`;
   }).join("");
-  return `<div class="adv-legend size">${label ? `<span class="t">${esc(label)}</span>` : ""}<svg width="${x + 20}" height="${H}" aria-hidden="true">${circles}</svg></div>`;
+  return `<div class="adv-legend size">${label ? `<span class="t">${esc(label)}</span>` : ""}<svg width="${Math.ceil(x + 8)}" height="${H}" aria-hidden="true">${circles}</svg></div>`;
 }
 
 export { rampColor };

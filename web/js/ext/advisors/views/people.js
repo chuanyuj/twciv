@@ -33,7 +33,7 @@ export function mount(ctx) {
   });
 
   // --- 22 縣市人口成長排行 ---
-  const gBody = section(el, { title: "人口成長與流失排行", note: `2021–2024 年各縣市戶籍人口變化率（內政部戶政司 ODRP048）。點擊可於地圖聚焦該縣市。` });
+  const gBody = section(el, { title: "人口成長與流失排行", note: `2021–2025 年各縣市戶籍人口變化率（內政部戶政司 ODRP048）。點擊可於地圖聚焦該縣市。` });
   const gHost = document.createElement("div");
   gBody.appendChild(gHost);
   const fast = topBy(states.rows, (r) => r.v.growth, { n: 8 });

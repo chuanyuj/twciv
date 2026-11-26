@@ -406,10 +406,9 @@ button.cv-cmp-n:hover { color: #fff3cf; text-decoration-color: var(--gold); }
   .cv-big b { font-size: 16px; }
   .cv-medal { min-width: 34px; height: 34px; font-size: 12px; }
   .cv-sec { padding: 10px 14px 4px; }
-  .cv-tabs { padding: 6px 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; gap: 4px; }
-  .cv-tabs::-webkit-scrollbar { display: none; }
-  .cv-tabs button { flex: none; min-height: 36px; padding: 6px 10px; white-space: nowrap; }
-  .cv-tabs button span { font-size: 12px; }
+  .cv-tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 6px 6px; gap: 3px; }
+  .cv-tabs button { min-height: 38px; padding: 5px 2px; flex-direction: column; gap: 2px; justify-content: center; }
+  .cv-tabs button span { font-size: 11px; white-space: nowrap; }
   .cv-yields { gap: 4px; }
   .cv-yield .val { font-size: 12px; }
   .cv-gdp b { font-size: 15px; }

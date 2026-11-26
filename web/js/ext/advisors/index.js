@@ -161,13 +161,13 @@ export function install(app) {
       main.querySelectorAll(".adv-card").forEach((c) => c.addEventListener("click", () => switchTo(c.dataset.adv)));
       return;
     }
-    main.innerHTML = `${titleHtml(adv)}<div class="adv-body"><div class="adv-loading">The ${esc(adv.role.toLowerCase())} is gathering the figures…</div></div>`;
+    main.innerHTML = `${titleHtml(adv)}<div class="adv-body"><div class="adv-loading">${esc(adv.role)}正在彙整最新統計數據…</div></div>`;
     let mod;
     try {
       [mod] = await Promise.all([adv.load(), ensureData()]);
     } catch (err) {
       console.error(err);
-      if (my === token) main.querySelector(".adv-body").innerHTML = `<p class="adv-empty pad">This advisor could not load (${esc(err.message || err)}).</p>`;
+      if (my === token) main.querySelector(".adv-body").innerHTML = `<p class="adv-empty pad">顧問面板載入失敗（${esc(err.message || err)}）。</p>`;
       return;
     }
     if (my !== token || app.mode !== "advisor") return;
@@ -241,11 +241,11 @@ export function install(app) {
   }
 
   function councilHtml() {
-    return `<div class="adv-title council"><div class="adv-titles"><div class="adv-kind">Your council</div><h2>Advisors</h2>
-      <p>Each advisor opens a dashboard on one part of the real economy. Hover anything to see it on the map; hover the map to find it in the charts; click to drill in.</p></div></div>
+    return `<div class="adv-title council"><div class="adv-titles"><div class="adv-kind">臺灣數據內閣</div><h2>顧問團</h2>
+      <p>每位顧問對應一項真實臺灣統計主題。點選卡片進入圖表與排行榜，並與地圖雙向聯動。</p></div></div>
       ${COUNCIL.map((g) => `<h4 class="adv-council-h">${esc(g.label)}</h4><div class="adv-council">${g.ids.map((id) => byId.get(id)).filter(Boolean).map((a) => `<button type="button" class="adv-card" data-adv="${a.id}" style="--adv:${a.color}">
         ${emblem(a, 48)}<span class="t"><span class="r">${esc(a.role)}</span><b>${esc(a.name)}</b><span class="d">${esc(a.blurb)}</span></span></button>`).join("")}</div>`).join("")}
-      <p class="adv-note pad">All figures are public data: Census ACS and population estimates, BEA GDP, BLS QCEW, EIA and MSHA site lists, USGS land cover, DoD installation and spending files, FHWA freight flows, USACE and FAA traffic, NPS visits, NSF research spending, the U.S. Religion Census, CDC PLACES, FEMA and NOAA. Each dashboard lists its sources and caveats at the bottom.</p>`;
+      <p class="adv-note pad">所有數據皆取自公開政府與地球觀測資料：內政部戶政司（110–115年人口、單歲年齡、學歷與家戶）、財政部（113年度村里綜所稅與營利事業銷售額）、主計總處（人力資源與家庭收支調查）、台電、臺灣港務公司、民航局、內政部國家公園署、NOAA ETOPO1 與 Natural Earth。各面板底部皆附詳細來源與口徑說明。</p>`;
   }
 
   // --- map → dashboard --------------------------------------------------------------------------------------------

@@ -339,10 +339,10 @@ body.adv-tip-on #tooltip { display: none !important; }
   .adv-cols-pop { width: min(300px, calc(100vw - 40px)); }
   .adv-search input, .adv-select select { font-size: 16px; }
   .adv-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .adv-tabs { overflow-x: auto; scrollbar-width: none; }
-  .adv-tabs::-webkit-scrollbar { display: none; }
-  .adv-tabs button { width: 34px; height: 34px; flex: none; }
-  .adv-close { width: 34px; height: 34px; }
+  .adv-tabs { flex: 1; justify-content: space-between; overflow: hidden; gap: 2px; }
+  .adv-tabs button { width: 30px; height: 30px; flex: none; }
+  .adv-tabs button .adv-emblem { width: 25px; height: 25px; }
+  .adv-close { width: 32px; height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .adv-tabs button, .adv-card { transition: none; }

@@ -382,7 +382,7 @@ button.cv-cmp-n:hover { color: #fff3cf; text-decoration-color: var(--gold); }
 
 /* The quick panel's spot and the minimap give way while the City View is open. */
 @media (min-width: 701px) {
-  body.cv-on #minimap-wrap { display: none; }
+  body.cv-on #minimap-wrap, body.cv-on .minimap-toggle { display: none; }
   body.cv-on #lens-area { left: calc(12px + var(--dock-left, 0px)); }
 }
 

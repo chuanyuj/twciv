@@ -202,11 +202,6 @@ kbd {
 /* Extension buttons cost top-bar room: their labels go first, then (body.tb-ext) the brand text gives way. */
 @media (max-width: 1720px) { .btn-ext .lbl { display: none; } .btn-ext { padding: 4px 7px; } body.tb-ext .turn { display: none; } }
 @media (max-width: 1320px) and (min-width: 701px) { body.tb-ext .brand-text { display: none; } }
-/* A docked dashboard plus the minimap leave the lens dock no room on smaller desktops: drop the minimap. */
-@media (max-width: 1360px) and (min-width: 701px) {
-  body.dock-open #minimap-wrap { display: none; }
-  body.dock-open #lens-area { left: calc(12px + var(--dock-left, 0px)); }
-}
 
 /* ---------- tooltip ---------- */
 .tooltip {
@@ -287,6 +282,9 @@ button.chip:hover { background: rgba(201,164,92,.2); }
 }
 #lens-area > * { pointer-events: auto; }
 body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
+@media (min-width: 701px) {
+  body.minimap-off #lens-area { left: calc(64px + var(--dock-left, 0px)); }
+}
 #lens-area { container-type: inline-size; }
 /* A narrow dock (e.g. beside the open panel) shows icons only for the quick lenses. */
 @container (max-width: 560px) {
@@ -389,9 +387,21 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 
 /* ---------- minimap ---------- */
 #minimap-wrap { position: fixed; left: calc(12px + var(--dock-left, 0px)); bottom: 12px; z-index: 11; padding: 5px; }
+body.minimap-off #minimap-wrap { display: none; }
 #minimap { display: block; cursor: pointer; border-radius: 3px; touch-action: none; }
-.minimap-toggle { display: none; }
-.minimap-close { display: none; }
+.minimap-close {
+  display: grid; place-items: center; position: absolute; top: -10px; right: -10px; z-index: 2;
+  width: 28px; height: 28px; border-radius: 50%; background: #1c2836; border: 1px solid var(--gold);
+  color: var(--gold-bright); font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  touch-action: manipulation;
+}
+.minimap-close:hover { background: #2a3c50; border-color: var(--gold-bright); }
+.minimap-toggle {
+  display: none; place-items: center; position: fixed; left: calc(12px + var(--dock-left, 0px)); bottom: 12px; z-index: 11;
+  width: 40px; height: 40px; padding: 0; cursor: pointer; color: var(--gold-bright); border-radius: 50%;
+  touch-action: manipulation;
+}
+body.minimap-off .minimap-toggle { display: grid; }
 
 /* ---------- modals: civilopedia + help ---------- */
 .modal { position: fixed; inset: 0; z-index: 30; background: rgba(0,0,0,.55); display: grid; place-items: center; }
@@ -452,6 +462,11 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
   .btn { padding: 4px 7px; }
   .search { flex-basis: 180px; min-width: 130px; }
 }
+/* A docked dashboard plus the minimap leave the lens dock no room on smaller desktops: drop the minimap. */
+@media (max-width: 1360px) and (min-width: 701px) {
+  body.dock-open #minimap-wrap, body.dock-open .minimap-toggle { display: none; }
+  body.dock-open #lens-area { left: calc(12px + var(--dock-left, 0px)); }
+}
 @media (max-width: 1000px) and (min-width: 701px) {
   .brand-text { display: none; }
   .lp-body { grid-template-columns: 1fr; }
@@ -460,7 +475,7 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
   .yield { font-size: 12.5px; gap: 4px; }
   .search { flex: 0 1 150px; min-width: 112px; }
   /* With a panel open there is no room for the dock beside the minimap: hide the minimap, give the dock the width. */
-  body.panel-open #minimap-wrap { display: none; }
+  body.panel-open #minimap-wrap, body.panel-open .minimap-toggle { display: none; }
   body.panel-open #lens-area { left: calc(12px + var(--dock-left, 0px)); }
 }
 /* The yields row gives way first when the bar is short of room (topbar.js marks it .clipped). Phones scroll the
@@ -518,15 +533,7 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 
   #minimap-wrap { display: none; bottom: 72px; left: 8px; padding: 6px; z-index: 14; }
   body.minimap-on #minimap-wrap { display: block; }
-  .minimap-close {
-    display: grid; place-items: center; position: absolute; top: -10px; right: -10px; z-index: 2;
-    width: 28px; height: 28px; border-radius: 50%; background: #1c2836; border: 1px solid var(--gold);
-    color: var(--gold-bright); font-size: 13px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.5);
-  }
-  .minimap-toggle {
-    display: grid; place-items: center; position: fixed; left: 8px; bottom: 68px; z-index: 11; width: 40px; height: 40px; padding: 0;
-    cursor: pointer; color: var(--gold-bright); border-radius: 50%;
-  }
+  .minimap-toggle { display: grid; left: 8px; bottom: 68px; }
   body.minimap-on .minimap-toggle { display: none; }
   body.panel-open .minimap-toggle, body.panel-open #minimap-wrap { display: none; }
 

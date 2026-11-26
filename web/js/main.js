@@ -833,20 +833,27 @@ async function main() {
   }
   const mmBtn = document.getElementById("btn-minimap");
   const mmClose = document.getElementById("btn-minimap-close");
+  const isMinimapOpen = () => (
+    isMobile() ? document.body.classList.contains("minimap-on") : !document.body.classList.contains("minimap-off")
+  );
   const setMinimap = (on) => {
     document.body.classList.toggle("minimap-on", on);
+    document.body.classList.toggle("minimap-off", !on);
     if (mmBtn) {
       mmBtn.setAttribute("aria-pressed", String(on));
       mmBtn.setAttribute("aria-label", on ? "關閉小地圖" : "顯示小地圖");
-      mmBtn.innerHTML = on ? icon("close", "✕", { size: 16 }) : icon("terrain", "🗺️", { size: 18 });
+      mmBtn.innerHTML = icon("terrain", "🗺️", { size: 18 });
     }
     if (on) minimap.draw();
   };
   if (mmBtn) {
     mmBtn.innerHTML = icon("terrain", "🗺️", { size: 18 });
-    mmBtn.onclick = () => setMinimap(!document.body.classList.contains("minimap-on"));
+    mmBtn.onclick = () => setMinimap(!isMinimapOpen());
   }
-  if (mmClose) mmClose.onclick = () => setMinimap(false);
+  if (mmClose) {
+    mmClose.addEventListener("pointerdown", (e) => e.stopPropagation());
+    mmClose.onclick = (e) => { e.stopPropagation(); setMinimap(false); };
+  }
   canvas.addEventListener("pointerdown", () => {
     if (isMobile() && document.body.classList.contains("minimap-on")) setMinimap(false);
   });

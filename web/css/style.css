@@ -474,21 +474,17 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 @media (max-width: 700px) {
   button { touch-action: manipulation; }
   #topbar {
-    gap: 6px; padding: 0 8px; height: 46px;
-    overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    gap: 6px; padding: 0 8px; height: 48px;
+    overflow: hidden;
   }
-  :root { --topbar-h: 46px; }
-  #topbar::-webkit-scrollbar { display: none; }
-  .brand-text { display: none; }
-  .spacer { display: none; }
+  :root { --topbar-h: 48px; }
+  .brand-text, .spacer, .yields, .search-kbd, .turn { display: none !important; }
   .brand { order: -3; flex: none; }
-  .search { flex: 0 0 132px; min-width: 120px; order: -2; margin-left: 2px; }
-  #search-input { font-size: 16px; padding: 4px 6px 4px 26px; }
-  .search-kbd { display: none; }
+  .search { flex: 1 1 auto; min-width: 0; order: -2; margin-left: 2px; }
+  #search-input { font-size: 16px; padding: 5px 8px 5px 26px; width: 100%; }
   .tb-buttons { order: -1; flex: none; gap: 4px; }
-  .tb-buttons .btn, .btn-ext { min-height: 34px; min-width: 34px; padding: 5px 8px; }
-  .yields { gap: 8px; flex: none; }
-  .yield { font-size: 12.5px; padding: 4px 2px; }
+  .tb-buttons .btn, .btn-ext { min-height: 36px; min-width: 36px; padding: 5px 7px; }
+  #btn-help { display: none; }
   /* Fades at the ends of the scrolling bar (ui/topbar.js sets .more-l / .more-r). */
   #topbar::before, #topbar::after {
     content: ""; position: sticky; flex: none; align-self: stretch; width: 24px; z-index: 1; pointer-events: none;
@@ -502,15 +498,15 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
   body.panel-open #lens-area { right: 0; }
   .lens-dock {
     border-radius: 12px 12px 0 0; border-left: none; border-right: none; border-bottom: none;
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); gap: 5px; max-width: 100vw;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); gap: 6px; width: 100%; justify-content: space-between;
   }
   .lens-quick {
-    flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-    gap: 5px;
+    flex: 1 1 auto; min-width: 0; overflow: hidden; gap: 6px; justify-content: center;
   }
-  .lens-quick::-webkit-scrollbar { display: none; }
-  .lens-btn { min-height: 36px; padding: 6px 9px; font-size: 12.5px; white-space: nowrap; flex: none; }
-  .res-toggle span, .lens-more span:not(.caret) { display: none; }
+  .lens-quick .lens-btn:nth-child(n+3) { display: none; }
+  .lens-btn { min-height: 38px; padding: 6px 10px; font-size: 13px; white-space: nowrap; flex: none; }
+  .res-toggle span { display: none; }
+  .lens-more span:not(.caret) { display: inline; }
   .map-layers-pop { margin: 0 8px; width: auto; align-self: stretch; }
   .ml-row { min-height: 44px; font-size: 14px; }
   .legend { width: auto; margin: 0 8px; padding: 8px 10px; }

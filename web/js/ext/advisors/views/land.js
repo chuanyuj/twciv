@@ -53,7 +53,7 @@ export function mount(ctx) {
   ]));
 
   // --- 全臺地表組成 ---
-  const cBody = section(el, { title: "全臺地表覆蓋組成", kicker: "22 縣市", note: "依 NOAA ETOPO1 高程與鄉鎮人口密度推估之六角格覆蓋比例。游標移過色段可高亮該類主導區域，點擊可鎖定。" });
+  const cBody = section(el, { title: "全臺地表覆蓋組成", kicker: "ESA WorldCover 10m", note: "依歐洲太空總署 ESA WorldCover 10 公尺衛星影像於全臺六角格取樣之真實地表覆蓋比例。游標移過色段可高亮該類主導區域，點擊可鎖定。" });
   let pinned = null;
   const parts = [...LAND_KEYS.map((k) => ({ key: k, label: LAND_ZH[k], value: share[k], color: LAND_COLOR[k], text: pct(share[k]) })), { key: "other", label: "其他（高山裸岩等）", value: other, color: "#6c6358", text: pct(other) }].filter((p) => p.value > 0.001).sort((a, b) => (a.key === "other") - (b.key === "other") || b.value - a.value);
   const domHighlight = (k, dim = true) => (dominant.has(k) ? { cells: new Set(dominant.get(k)), dimOthers: dim, color: LAND_COLOR[k] } : null);
@@ -67,7 +67,7 @@ export function mount(ctx) {
   cBody.appendChild(pinInfo);
   const lensRow = document.createElement("div");
   lensRow.className = "adv-row";
-  for (const [id, label] of [["elevation", "地形海拔濾鏡"], ["forest", "森林覆蓋濾鏡"]]) {
+  for (const [id, label] of [["elevation", "地形海拔"], ["forest", "森林覆蓋"], ["crop", "農地覆蓋"], ["developed", "都會建成區"], ["quakes", "地震活動度"]]) {
     const b = lensButton(app, id, label);
     if (b) lensRow.appendChild(b);
   }

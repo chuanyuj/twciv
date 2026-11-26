@@ -25,6 +25,17 @@ STATIC_FILES = [
     ("natural_earth/ne_10m_roads.geojson", "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_roads.geojson"),
     ("natural_earth/ne_10m_railroads.geojson", "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_railroads.geojson"),
     ("tw_fia/fia_income_2024.csv", "https://raw.githubusercontent.com/kiang/salary/gh-pages/data/csv/2024.csv"),
+    # MOI Real Estate Actual Price Registration (3 recent quarters: 114S3, 114S4, 115S1)
+    ("tw_plvr/lvr_114S3.zip", "https://plvr.land.moi.gov.tw/DownloadSeason?season=114S3&type=zip&fileName=lvr_landcsv.zip"),
+    ("tw_plvr/lvr_114S4.zip", "https://plvr.land.moi.gov.tw/DownloadSeason?season=114S4&type=zip&fileName=lvr_landcsv.zip"),
+    ("tw_plvr/lvr_115S1.zip", "https://plvr.land.moi.gov.tw/DownloadSeason?season=115S1&type=zip&fileName=lvr_landcsv.zip"),
+    # USGS ComCat 20-year Taiwan M4.0+ Earthquake Catalog (2006-2026)
+    ("usgs_eq/tw_quakes_2006_2026.geojson", "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=21.5&maxlatitude=26.5&minlongitude=118.0&maxlongitude=123.0&minmagnitude=4.0&starttime=2006-01-01"),
+    # ESA WorldCover 10m 2021 v200 satellite land cover tiles covering Taiwan, Penghu, Kinmen, Matsu
+    ("esa_worldcover/N24E120.tif", "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N24E120_Map.tif"),
+    ("esa_worldcover/N21E120.tif", "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N21E120_Map.tif"),
+    ("esa_worldcover/N24E117.tif", "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N24E117_Map.tif"),
+    ("esa_worldcover/N21E117.tif", "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N21E117_Map.tif"),
 ]
 
 RIS_DATASETS = [

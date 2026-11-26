@@ -14,12 +14,13 @@ import { esc, el } from "./core/util.js";
 import { icon } from "../../ui/icon.js";
 
 export const ADVISORS = [
-  { id: "energy", name: "能源與電廠", role: "能源大臣", color: "#d98a2b", dark: "#3a1f08", blurb: "全台主力發電廠、抽蓄水力、離岸風電與太陽光電分佈。", load: () => import("./views/energy.js") },
+  { id: "energy", name: "能源與電廠", role: "能源大臣", color: "#d98a2b", dark: "#3a1f08", blurb: "全台主力發電廠、抽蓄水力、離岸風電、太陽光電、天然氣接收站與大型儲能。", load: () => import("./views/energy.js") },
   { id: "economy", name: "經濟產值", role: "財政大臣", color: "#c9a43a", dark: "#3a2c08", blurb: "各縣市營利事業銷售額與產業就業結構排行。", load: () => import("./views/economy.js") },
-  { id: "people", name: "人口與高齡", role: "戶政總監", color: "#c46a4f", dark: "#3a140c", blurb: "368 鄉鎮市區人口密度、人口消長與超高齡化趨勢。", load: () => import("./views/people.js") },
-  { id: "prosperity", name: "所得與房價", role: "民生總管", color: "#3f9c82", dark: "#082a22", blurb: "各縣市家庭可支配所得與房價所得比對照。", load: () => import("./views/prosperity.js") },
+  { id: "commerce", name: "貿易與交通", role: "交通大臣", color: "#d9a457", dark: "#36250a", blurb: "全臺 18 條跨區經濟幹線、七大國際商港與主要機場運量。", load: () => import("./views/commerce.js") },
+  { id: "people", name: "人口與高齡", role: "戶政總監", color: "#c46a4f", dark: "#3a140c", blurb: "368 鄉鎮市區人口密度、少子化、人口消長與超高齡化趨勢。", load: () => import("./views/people.js") },
+  { id: "prosperity", name: "所得與房價", role: "民生總管", color: "#3f9c82", dark: "#082a22", blurb: "各縣市家庭可支配所得、實價登錄房價與房價所得比對照。", load: () => import("./views/prosperity.js") },
   { id: "knowledge", name: "教育與科技", role: "學術大臣", color: "#4a86d6", dark: "#0a1c3a", blurb: "大專以上學歷分佈、頂尖研究型大學與科技就業能量。", load: () => import("./views/knowledge.js") },
-  { id: "land", name: "地形與土地", role: "測繪總長", color: "#6e9a3c", dark: "#18280a", blurb: "高山森林、平原農田與都會建地的空間分佈。", load: () => import("./views/land.js") },
+  { id: "land", name: "地形與土地", role: "測繪總長", color: "#6e9a3c", dark: "#18280a", blurb: "ESA 10m 衛星森林、農田、都會建地與地震活動空間分佈。", load: () => import("./views/land.js") },
   { id: "culture", name: "奇觀與文化", role: "文教總監", color: "#c25b9a", dark: "#2e0c22", blurb: "國家公園、歷史古蹟與代表性自然人文地標。", load: () => import("./views/culture.js") },
   { id: "explorer", name: "資料探索器", role: "製圖師", color: "#9a7bc9", dark: "#1e1236", blurb: "自由交叉比對 22 縣市與 368 鄉鎮市區任意欄位與散佈圖。", load: () => import("./views/explorer.js") },
 ];
@@ -27,7 +28,7 @@ const byId = new Map(ADVISORS.map((a) => [a.id, a]));
 // The council picker groups its advisors (any advisor not listed here is added to the last group).
 const COUNCIL = (() => {
   const g = [
-    { label: "經濟與能源", ids: ["economy", "prosperity", "energy"] },
+    { label: "經濟、交通與能源", ids: ["economy", "commerce", "prosperity", "energy"] },
     { label: "人口、文教與土地", ids: ["people", "knowledge", "culture", "land"] },
     { label: "自由探索", ids: ["explorer"] },
   ];

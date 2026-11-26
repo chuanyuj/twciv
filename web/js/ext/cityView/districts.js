@@ -20,11 +20,11 @@ const FALLBACK = {
   aqueduct: ["i-utilities", "💧"],
 };
 const SHORT = {
-  campus: "Campus", commercial_hub: "Commerce", industrial_zone: "Industry", harbor: "Harbor", theater_square: "Theater",
-  entertainment_complex: "Leisure", aerodrome: "Aerodrome", government_plaza: "Gov. plaza", encampment: "Encampment",
-  aqueduct: "Aqueduct",
+  campus: "科技研發", commercial_hub: "金融商貿", industrial_zone: "製造工業", harbor: "港埠航運", theater_square: "文教觀光",
+  entertainment_complex: "休閒娛樂", aerodrome: "航空運籌", government_plaza: "行政樞紐", encampment: "軍營",
+  aqueduct: "農漁能源",
 };
-const TIER = { garrison: "Garrison", fortress: "Fortress" };
+const TIER = { garrison: "駐軍", fortress: "要塞" };
 
 const catCache = new WeakMap();
 function catalog(ddata) {
@@ -85,7 +85,7 @@ export function badgeOf(ddata, id) {
   if (!ddata) return ddata; // undefined (loading) or null (missing)
   const row = ddata.cities?.[id];
   if (!row) return null;
-  if (!row.badge) return { label: "Diversified", text: "No district passes the rule: no industry group stands out.", color: "#6a7484", icon: null, district: null };
+  if (!row.badge) return { label: "多元發展", text: "無單一產業顯著高於全臺平均。", color: "#6a7484", icon: null, district: null };
   const c = catalog(ddata).get(row.badge.district) || {};
   return { ...row.badge, color: c.color || "#6a7484", icon: iconFor(row.badge.district, c), emoji: FALLBACK[row.badge.district]?.[1] };
 }
@@ -93,7 +93,7 @@ export function badgeOf(ddata, id) {
 export function badgeHtml(m, ddata) {
   const b = badgeOf(ddata, m.city.id);
   if (!b) return "";
-  return `<span class="cv-type${b.district ? "" : " plain"}" style="--tc:${esc(b.color)}" title="City type: ${esc(b.text || b.label)} (BLS QCEW ${esc(String(ddata.year || ""))})">
+  return `<span class="cv-type${b.district ? "" : " plain"}" style="--tc:${esc(b.color)}" title="城市定位：${esc(b.text || b.label)}（${esc(String(ddata.year || ""))}）">
     <span class="cv-type-ic">${icon(b.icon, b.emoji || "◆", { size: 13 })}</span>${esc(b.label)}</span>`;
 }
 
@@ -103,31 +103,30 @@ const signed = (x) => (x == null ? "–" : `${x >= 0 ? "+" : "−"}${Math.abs(x 
 function lqTag(lq, lb, tip) {
   if (lq == null) return "";
   const cls = lq >= 1.25 ? "hi" : lq <= 0.75 ? "lo" : "mid";
-  return `<span class="cv-lq ${cls}" title="${esc(tip || `Location quotient: ${lq.toFixed(2)}× the national share of jobs`)}">×${ge(lb)}${lq.toFixed(1)}</span>`;
+  return `<span class="cv-lq ${cls}" title="${esc(tip || `區位商數：為全臺平均就業占比的 ${lq.toFixed(2)} 倍`)}">×${ge(lb)}${lq.toFixed(1)}</span>`;
 }
 
 function districtCard(d, row, ddata, mil) {
   const nat = ddata?.national || {};
   const c = d.cat || {};
   const lb = !!d.lower_bound;
-  const supTip = lb ? ` BLS withheld part of this in ${d.suppressed} member count${d.suppressed === 1 ? "y" : "ies"}, so it is a lower bound.` : "";
+  const supTip = lb ? ` 部分鄉鎮資料未公開，數值為下限。` : "";
   const facts = [];
   if (d.emp != null) {
-    facts.push(`<div><span>Jobs</span><b>${ge(lb)}${compact(d.emp)}</b><small>${d.share != null ? `${pct(d.share, 1)} of the metro` : ""}</small></div>`);
+    facts.push(`<div><span>就業人數</span><b>${ge(lb)}${compact(d.emp)}</b><small>${d.share != null ? `占縣市 ${pct(d.share, 1)}` : ""}</small></div>`);
   }
   if (d.avg_pay != null) {
-    facts.push(`<div><span>Avg pay</span><b>${money(d.avg_pay)}</b><small>${row?.avg_pay != null ? `metro ${money(row.avg_pay)}` : ""}</small></div>`);
+    facts.push(`<div><span>平均所得</span><b>${money(d.avg_pay)}</b><small>${row?.avg_pay != null ? `縣市 ${money(row.avg_pay)}` : ""}</small></div>`);
   }
   if (d.strength != null) {
-    facts.push(`<div title="Jobs above the national norm: jobs − jobs ÷ LQ (how districts are ranked)"><span>Above norm</span><b>${ge(lb)}${compact(Math.max(0, d.strength))}</b><small>jobs</small></div>`);
+    facts.push(`<div title="高於全臺平均結構之超額就業人數"><span>超額聚集</span><b>${ge(lb)}${compact(Math.max(0, d.strength))}</b><small>人</small></div>`);
   }
   let spec = "";
   if (d.sub && d.subName) {
-    // the speciality's own withheld flag (districts.json sub_lower_bound; older files: the top-industries row)
     const slb = d.sub_lower_bound ?? !!(row?.top || []).find((t) => t.naics === d.sub)?.lower_bound;
-    spec = `<p class="cv-dc-sub">${d.via === "specialty" ? "Qualifies through" : "Strongest speciality"}: <b>${esc(d.subName)}</b> ${lqTag(d.sub_lq, slb, slb ? `Location quotient: at least ${d.sub_lq.toFixed(2)}× the national share (BLS withheld part of it, so it is a lower bound)` : undefined)}${
-      d.sub_emp != null ? ` <small>${ge(slb)}${compact(d.sub_emp)} jobs</small>` : ""}${
-      d.via === "specialty" && d.lq != null ? `<br><small>The district's industries as a whole are ${d.lq.toFixed(2)}× the national share; this speciality alone passes the rule.</small>` : ""}</p>`;
+    spec = `<p class="cv-dc-sub">核心專精：<b>${esc(d.subName)}</b> ${lqTag(d.sub_lq, slb)}${
+      d.sub_emp != null ? ` <small>${ge(slb)}${compact(d.sub_emp)} 人</small>` : ""}${
+      d.note ? `<br><small>${esc(d.note)}</small>` : ""}</p>`;
   }
   let milHtml = "";
   if (d.military) {
@@ -155,13 +154,13 @@ function topTable(row, ddata) {
   const top = row?.top || [];
   if (!top.length) return "";
   const max = Math.max(...top.map((t) => t.lq || 0), 1);
-  return `<h4 class="cv-h4">Most specialised industries <span class="muted">by location quotient</span></h4>
-  <div class="cv-top" role="table" aria-label="Most specialised industries">
-    <div class="cv-top-r cv-top-hd" role="row"><span role="columnheader">Industry</span><span role="columnheader">Jobs</span><span role="columnheader">×US</span><span role="columnheader">Pay</span><span role="columnheader">1 yr</span></div>
+  return `<h4 class="cv-h4">最專精產業排行 <span class="muted">依區位商數（LQ）</span></h4>
+  <div class="cv-top" role="table" aria-label="最專精產業排行">
+    <div class="cv-top-r cv-top-hd" role="row"><span role="columnheader">產業</span><span role="columnheader">就業</span><span role="columnheader">×全臺</span><span role="columnheader">所得</span><span role="columnheader">年變</span></div>
     ${top.map((t) => {
-      const title = ddata.industries?.[t.naics]?.title || `NAICS ${t.naics}`;
+      const title = ddata.industries?.[t.naics]?.title || t.naics;
       const lb = !!t.lower_bound;
-      return `<div class="cv-top-r" role="row" title="${esc(title)} (NAICS ${esc(t.naics)})${lb ? `. Lower bound: BLS withheld it in ${t.suppressed} member count${t.suppressed === 1 ? "y" : "ies"}.` : ""}">
+      return `<div class="cv-top-r" role="row" title="${esc(title)}">
         <span role="cell" class="cv-top-n">${esc(title)}<i style="width:${((Math.log(1 + (t.lq || 0)) / Math.log(1 + max)) * 100).toFixed(1)}%"></i></span>
         <span role="cell">${ge(lb)}${compact(t.emp)}</span>
         <span role="cell"><b>${t.lq != null ? `${ge(lb)}${t.lq.toFixed(1)}` : "–"}</b></span>
@@ -173,34 +172,31 @@ function topTable(row, ddata) {
 
 /** The Districts section body. ddata: districts.json (undefined while loading, null when missing). */
 export function districtsHtml(m, ddata, mil) {
-  if (ddata === undefined) return `<p class="muted cv-note">Loading districts…</p>`;
-  if (!ddata) return `<p class="muted cv-note">District data is not available.</p>`;
+  if (ddata === undefined) return `<p class="muted cv-note">載入產業分區資料中…</p>`;
+  if (!ddata) return `<p class="muted cv-note">尚未提供產業分區資料。</p>`;
   const id = m.city.id;
   const row = ddata.cities?.[id] || null;
   const list = cityDistricts(ddata, mil, id);
   const b = badgeOf(ddata, id);
   let lead;
   if (!row) {
-    lead = `<p class="cv-lead">BLS publishes no county employment for ${esc(m.city.name)}'s member counties, so it has no industry districts.</p>`;
+    lead = `<p class="cv-lead">${esc(m.city.name)}尚無產業分區統計資料。</p>`;
   } else {
-    const cnt = row.counties ? ` from ${row.counties[0]} of ${row.counties[1]} member count${row.counties[1] === 1 ? "y" : "ies"}` : "";
-    lead = `<p class="cv-lead">${b?.district ? `<b class="cv-type-l" style="--tc:${esc(b.color)}">${esc(b.label)}</b> · ${esc(b.text || "")}. ` : ""}${
-      int(row.emp)} jobs counted${esc(cnt)}, average pay ${money(row.avg_pay)} (U.S. ${money(ddata.national?.avg_pay)}).</p>`;
+    const cnt = row.counties ? `（涵蓋 ${row.counties[0]} 個鄉鎮市區）` : "";
+    lead = `<p class="cv-lead">${b?.district ? `<b class="cv-type-l" style="--tc:${esc(b.color)}">${esc(b.label)}</b> · ${esc(b.text || "")}。` : ""}就業規模約 ${
+      int(row.emp)} 人${esc(cnt)}，家庭平均可支配所得 ${money(row.avg_pay)}（全臺加權平均 ${money(ddata.national?.avg_pay)}）。</p>`;
   }
   const cards = list.length
     ? `<div class="cv-dcs">${list.map((d) => districtCard(d, row, ddata, mil)).join("")}</div>`
-    : row ? `<p class="muted cv-note">No district passes the rule here: the metro's jobs are spread like the nation's.</p>` : "";
-  const milRule = mil?.rule && list.some((d) => d.military) ? `<p><b>Encampment tier</b> (military.json): ${esc(mil.rule)}</p>` : "";
+    : row ? `<p class="muted cv-note">無單一產業分區超過門檻：就業結構接近全臺平均。</p>` : "";
   return `${lead}
     ${cards}
     ${topTable(row, ddata)}
     <div class="cv-schematic">
-      <p><b>◆ On the map</b> each district stands as a plaque on a metro hex near the city. The positions are schematic: they show what the metro specialises in, not where the jobs are.</p>
+      <p><b>◆ 地圖分區標記</b>會顯示於城市周邊六角格上，為示意位置，代表該縣市的代表性產業強項。</p>
     </div>
-    <details class="cv-more cv-rule"><summary>How districts are chosen</summary>
-      <p>${esc(ddata.rule?.text || "")}</p>${milRule}
-      <p>QCEW counts jobs where the employer is, not where workers live; it leaves out the self-employed, most farm workers, railroads and uniformed military.</p>
+    <details class="cv-more cv-rule"><summary>產業分區評定方式</summary>
+      <p>${esc(ddata.rule?.text || "")}</p>
     </details>
-    <p class="cv-note">${esc(ddata.vintage || "BLS QCEW")}, all ownerships (federal and state only for the Government plaza and Encampment). ×N = location quotient; ≥ = a lower bound (BLS withheld a county's figure).${
-      mil && list.some((d) => d.military) ? ` Encampment tier: ${esc(typeof mil.vintage === "object" ? [mil.vintage.installations, mil.vintage.acs].filter(Boolean).join("; ") : mil.vintage || "")}.` : ""}</p>`;
+    <p class="cv-note">${esc(ddata.vintage || "")}。×N 代表該產業就業占比為全臺平均的 N 倍（區位商數 LQ）。</p>`;
 }

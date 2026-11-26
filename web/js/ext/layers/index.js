@@ -15,6 +15,7 @@ const TOGGLES = [
   { id: "rail", label: "鐵路網", icon: "t-rail", def: true, title: "台鐵與高鐵幹線走廊（Natural Earth 1:10m）", layers: ["rail"] },
   { id: "hubs", label: "商港與機場", icon: "d-harbor", def: true, title: "臺灣七大國際商港與主要民航機場", layers: ["hubs"] },
   { id: "wonders", label: "臺灣奇觀", icon: "w-landmark", def: true, title: "國家公園、頂尖研究型大學與代表性文化自然地標", layers: ["wonders", "protected", "plates"] },
+  { id: "trade", label: "城際幹線", icon: "t-trade", def: false, title: "全臺 18 條主要跨區經濟與客貨運幹線（高鐵／國道／商港／離島）", layers: ["trade"] },
 ];
 
 export function install(app) {

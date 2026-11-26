@@ -80,9 +80,12 @@ class TestTwcivDataContracts(unittest.TestCase):
 
     def test_lenses_contracts(self):
         lenses = self.lenses["lenses"]
-        self.assertEqual(len(lenses), 10)
+        self.assertEqual(len(lenses), 16)
         ids = {l["id"] for l in lenses}
-        for required in ("density", "income", "degrees", "elderly", "growth", "home_ratio", "age", "single_hh", "elevation", "forest"):
+        for required in (
+            "density", "income", "home_price", "degrees", "elderly", "child_pct", "aging_index",
+            "growth", "home_ratio", "age", "single_hh", "elevation", "forest", "crop", "developed", "quakes",
+        ):
             self.assertIn(required, ids)
         for l in lenses:
             self.assertEqual(len(l["values"]), self.grid_n)
@@ -92,7 +95,7 @@ class TestTwcivDataContracts(unittest.TestCase):
             self.assertGreater(len(non_null), 500, f"lens {l['id']} too sparse")
 
     def test_resources_infra_wonders_citizens_sources(self):
-        self.assertEqual(len(self.resources["items"]), 20)
+        self.assertGreaterEqual(len(self.resources["items"]), 55)
         for it in self.resources["items"]:
             self.assertTrue(0 <= it["cell"] < self.grid_n)
         self.assertGreater(len(self.infra["roads"]), 300)
@@ -101,10 +104,22 @@ class TestTwcivDataContracts(unittest.TestCase):
         self.assertEqual(len(self.infra["airports"]), 9)
         self.assertEqual(len(self.wonders["wonders"]), 23)
         self.assertEqual(len(self.citizens["cities"]), 22)
-        self.assertGreaterEqual(len(self.sources), 10)
-        # Ensure stale US-only optional files are absent
-        for stale in ("military.json", "trade.json", "districts.json", "disasters.json"):
-            self.assertFalse((DATA / stale).exists(), f"stale US file {stale} present")
+        self.assertGreaterEqual(len(self.sources), 15)
+        # Verify v2 expansion files exist and conform to contracts
+        districts = load("districts.json")
+        self.assertEqual(len(districts["cities"]), 22)
+        self.assertEqual(len(districts["counties"]), 368)
+        self.assertGreaterEqual(len(districts["catalog"]), 7)
+        trade = load("trade.json")
+        self.assertEqual(len(trade["zones"]), 12)
+        self.assertEqual(len(trade["routes"]), 18)
+        for r in trade["routes"]:
+            self.assertGreaterEqual(len(r["path"]), 2)
+        disasters = load("disasters.json")
+        self.assertGreater(disasters["seismic"]["total_events"], 2000)
+        self.assertGreaterEqual(len(disasters["seismic"]["notable_m6"]), 20)
+        # Military remains intentionally absent (classified in Taiwan)
+        self.assertFalse((DATA / "military.json").exists(), "military.json should not exist")
 
 
 if __name__ == "__main__":

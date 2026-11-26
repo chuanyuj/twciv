@@ -10,10 +10,24 @@ import csv
 import json
 import math
 import statistics
+import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from pipeline.tw_v2_data import (
+    RES_TYPES_V2,
+    TW_RESOURCES_V2,
+    build_disasters_and_quakes,
+    build_districts_json,
+    build_trade_json,
+    load_plvr_housing,
+    sample_esa_worldcover,
+)
+
 RAW = ROOT / "data" / "raw"
 WEB_DATA = ROOT / "web" / "data"
 
@@ -683,6 +697,12 @@ def main():
             near_land = any(owner[nb] >= 0 for nb in grid.neighbours(i))
             water[i] = 2 if (near_land or depth > -200) else 1
 
+    # Upgrade land cover (cover + pct) to real ESA WorldCover 10m satellite data when tiles are present
+    wc_res = sample_esa_worldcover(RAW, grid, owner, elev, elev_max, proj)
+    has_esa_wc = wc_res is not None
+    if has_esa_wc:
+        cover, pct = wc_res
+
     # Rivers in map coordinates
     rivers = []
     for rname, rrank, pts in TW_RIVERS:
@@ -738,19 +758,10 @@ def main():
         "rivers": rivers,
     }
 
-    # --- Build resources.json (Taiwan Power Plants) ---
-    res_types = [
-        {"id": "nuclear", "name": "核能電廠", "category": "energy", "emoji": "☢️", "icon": "r-nuclear", "color": "#e8d44d", "unit": "MW", "description": "台灣運轉中核能發電廠裝置容量（台電）", "source": "taipower"},
-        {"id": "gas_plant", "name": "燃氣電廠", "category": "energy", "emoji": "🔥", "icon": "r-gas", "color": "#f08a3c", "unit": "MW", "description": "台灣主力燃氣複循環發電廠（台電／民營）", "source": "taipower"},
-        {"id": "coal_plant", "name": "燃煤電廠", "category": "energy", "emoji": "🏭", "icon": "r-coal", "color": "#6e6a66", "unit": "MW", "description": "台灣大型燃煤發電廠（台電／民營）", "source": "taipower"},
-        {"id": "hydro", "name": "慣常水力", "category": "energy", "emoji": "💧", "icon": "r-hydro", "color": "#4da6e8", "unit": "MW", "description": "主要水力發電廠群（大甲溪等）", "source": "taipower"},
-        {"id": "pumped_storage", "name": "抽蓄水力", "category": "energy", "emoji": "⚡", "icon": "r-hydro", "color": "#38b2ac", "unit": "MW", "description": "明潭與明湖抽蓄水力電廠（儲能調度主力）", "source": "taipower"},
-        {"id": "wind", "name": "離岸風電", "category": "energy", "emoji": "🌬️", "icon": "r-wind", "color": "#63d2ff", "unit": "MW", "description": "台灣海峽主要離岸風力發電場", "source": "taipower"},
-        {"id": "solar", "name": "太陽光電", "category": "energy", "emoji": "☀️", "icon": "r-solar", "color": "#ffd447", "unit": "MW", "description": "中南部大型地面型太陽光電聚落", "source": "taipower"},
-        {"id": "geothermal", "name": "地熱電廠", "category": "energy", "emoji": "♨️", "icon": "r-geothermal", "color": "#e06666", "unit": "MW", "description": "宜蘭清水地熱發電廠", "source": "taipower"},
-    ]
+    # --- Build resources.json (Expanded Taiwan Power Plants, LNG Terminals & Storage) ---
+    res_types = RES_TYPES_V2
     res_items = []
-    res_nat = {t["id"]: {"count": 0, "value": 0, "unit": "MW"} for t in res_types}
+    res_nat = {t["id"]: {"count": 0, "value": 0, "unit": t["unit"]} for t in res_types}
     res_by_state = defaultdict(lambda: defaultdict(lambda: {"count": 0, "value": 0, "unit": "MW"}))
 
     def nearest_land_cell(x: float, y: float, prefer_state: int = -1) -> int:
@@ -773,8 +784,9 @@ def main():
 
     abbr_to_code = {s["abbr"]: s["fips"] for s in states_list}
     abbr_to_idx = {s["abbr"]: i for i, s in enumerate(states_list)}
+    unit_by_type = {t["id"]: t["unit"] for t in res_types}
 
-    for rtype, rname, lon, lat, mw, detail, stabbr in TW_POWER_PLANTS:
+    for rtype, rname, lon, lat, mw, detail, stabbr in TW_RESOURCES_V2:
         x, y = proj(lon, lat)
         c = grid.cell_at(x, y)
         if c < 0 or (rtype != "wind" and owner[c] < 0):
@@ -787,6 +799,7 @@ def main():
         res_nat[rtype]["value"] += mw
         res_by_state[stabbr][rtype]["count"] += 1
         res_by_state[stabbr][rtype]["value"] += mw
+        res_by_state[stabbr][rtype]["unit"] = unit_by_type.get(rtype, "MW")
 
     resources_json = {
         "types": res_types,
@@ -1010,24 +1023,35 @@ def main():
         },
     }
 
+    # Load MOI PLVR real estate housing medians (114S3-115S1) & USGS 20-yr Taiwan earthquakes
+    town_housing, county_housing = load_plvr_housing(RAW)
+    cell_quakes, town_quakes, disasters_json = build_disasters_and_quakes(
+        RAW, grid, owner, county_cell, town_meta, states_list, proj
+    )
+
     # --- Build counties.json (368 Townships) & lenses.json ---
     county_fields = [
         {"key": "geoid", "label": "鄉鎮代碼", "format": "text", "unit": "", "higher_is": "neutral", "source": "tw_boundaries", "description": "內政部國土測繪中心鄉鎮市區代碼"},
         {"key": "name", "label": "鄉鎮市區", "format": "text", "unit": "", "higher_is": "neutral", "source": "tw_boundaries", "description": "行政區名稱"},
         {"key": "state", "label": "縣市", "format": "text", "unit": "", "higher_is": "neutral", "source": "tw_boundaries", "description": "所屬縣市簡稱"},
-        {"key": "population", "label": "人口數", "format": "int", "unit": "人", "higher_is": "neutral", "source": "moi_ris", "description": "113年底戶籍人口數（內政部戶政司）"},
+        {"key": "population", "label": "人口數", "format": "int", "unit": "人", "higher_is": "neutral", "source": "moi_ris", "description": "114年底戶籍人口數（內政部戶政司）"},
         {"key": "land_km2", "label": "土地面積", "format": "km2", "unit": "km²", "higher_is": "neutral", "source": "moi_ris", "description": "鄉鎮市區土地面積（平方公里）"},
-        {"key": "density", "label": "人口密度", "format": "float", "unit": "人 / km²", "higher_is": "neutral", "source": "moi_ris", "description": "每平方公里人口數（113年）"},
-        {"key": "growth", "label": "人口成長率", "format": "pct", "unit": "%", "higher_is": "good", "source": "moi_ris", "description": "2021–2024 年戶籍人口變化率"},
-        {"key": "median_age", "label": "中位數年齡", "format": "years", "unit": "歲", "higher_is": "neutral", "source": "moi_ris", "description": "113年單歲人口計算之年齡中位數"},
+        {"key": "density", "label": "人口密度", "format": "float", "unit": "人 / km²", "higher_is": "neutral", "source": "moi_ris", "description": "每平方公里人口數（114年底）"},
+        {"key": "growth", "label": "人口成長率", "format": "pct", "unit": "%", "higher_is": "good", "source": "moi_ris", "description": "2021–2025 年戶籍人口變化率"},
+        {"key": "median_age", "label": "中位數年齡", "format": "years", "unit": "歲", "higher_is": "neutral", "source": "moi_ris", "description": "115年10月單歲人口計算之年齡中位數"},
         {"key": "elderly", "label": "高齡人口比", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "moi_ris", "description": "65歲以上人口占總人口比例（>20%為超高齡）"},
-        {"key": "bachelors", "label": "大專以上學歷", "format": "pct", "unit": "%", "higher_is": "good", "source": "moi_ris", "description": "15歲以上具大學、專科或研究所以上學歷比例"},
-        {"key": "single_hh", "label": "單人戶比例", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "moi_ris", "description": "1人獨居戶占總普通住戶比例"},
+        {"key": "child_pct", "label": "幼年人口比", "format": "pct", "unit": "%", "higher_is": "good", "source": "moi_ris", "description": "0–14歲幼年人口占總人口比例（少子化指標）"},
+        {"key": "aging_index", "label": "老化指數", "format": "float", "unit": "", "higher_is": "bad", "source": "moi_ris", "description": "65歲以上人口 ÷ 0–14歲人口 × 100"},
+        {"key": "bachelors", "label": "大專以上學歷", "format": "pct", "unit": "%", "higher_is": "good", "source": "moi_ris", "description": "15歲以上具大學、專科或研究所以上學歷比例（114年）"},
+        {"key": "single_hh", "label": "單人戶比例", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "moi_ris", "description": "1人獨居戶占總普通住戶比例（114年）"},
         {"key": "income", "label": "綜所稅中位數", "format": "usd", "unit": "元", "higher_is": "good", "source": "tw_fia", "description": "113年度各鄉鎮市區綜合所得總額中位數（納稅單位加權，財政部）"},
         {"key": "income_mean", "label": "綜所稅平均數", "format": "usd", "unit": "元", "higher_is": "good", "source": "tw_fia", "description": "113年度各鄉鎮市區綜合所得總額平均數（財政部）"},
+        {"key": "home_price", "label": "實價登錄單價", "format": "float", "unit": "萬/坪", "higher_is": "bad", "source": "tw_plvr", "description": "114S3–115S1 住宅成交中位數單價（萬元/坪，內政部實價登錄）"},
         {"key": "home_ratio", "label": "房價所得比", "format": "float", "unit": "倍", "higher_is": "bad", "source": "moi_housing", "description": "所屬縣市113年第4季房價所得比（內政部）"},
-        {"key": "forest", "label": "森林比例", "format": "pct", "unit": "%", "higher_is": "good", "source": "etopo", "description": "該區六角格平均森林覆蓋推估"},
-        {"key": "developed", "label": "建地比例", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "etopo", "description": "該區六角格平均都會建地比例"},
+        {"key": "forest", "label": "森林比例", "format": "pct", "unit": "%", "higher_is": "good", "source": "esa_worldcover" if has_esa_wc else "etopo", "description": "該區六角格平均森林覆蓋比例（ESA WorldCover 10m 衛星圖資）"},
+        {"key": "crop", "label": "農地比例", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "esa_worldcover" if has_esa_wc else "etopo", "description": "該區六角格平均農田耕地比例（ESA WorldCover 10m 衛星圖資）"},
+        {"key": "developed", "label": "建地比例", "format": "pct", "unit": "%", "higher_is": "neutral", "source": "esa_worldcover" if has_esa_wc else "etopo", "description": "該區六角格平均都市建成區比例（ESA WorldCover 10m 衛星圖資）"},
+        {"key": "quakes", "label": "20年地震次數", "format": "int", "unit": "次", "higher_is": "bad", "source": "usgs_eq", "description": "2006–2026 年半徑 50 公里內規模 M4.0+ 地震發生次數（USGS）"},
         {"key": "cbsa", "label": "縣市代碼", "format": "text", "unit": "", "higher_is": "neutral", "source": "tw_boundaries", "description": "所屬縣市代碼"},
         {"key": "cell", "label": "代表六角格", "format": "int", "unit": "", "higher_is": "neutral", "source": "tw_boundaries", "description": "代表該鄉鎮之六角格索引"},
     ]
@@ -1043,6 +1067,8 @@ def main():
         ag = age_by_town.get(full)
         med_age = ag["median"] if ag else None
         elder = ag["elder_pct"] if ag else None
+        child_p = round(ag["child"] / ag["total"], 4) if (ag and ag["total"] > 0) else None
+        aging_idx = round(100.0 * ag["elder"] / max(1, ag["child"]), 1) if (ag and ag["child"] > 0) else None
         ed = edu_by_town.get(full)
         bach = round((ed["grad"] + ed["univ"] + ed["jc"]) / ed["total"], 4) if (ed and ed["total"] > 0) else None
         hh = hh_by_town.get(full)
@@ -1050,31 +1076,41 @@ def main():
         fia = fia_by_town.get(full)
         inc = fia["median"] if fia else COUNTIES_META[s_idx][9]
         inc_mean = fia["mean"] if fia else None
+        plvr_t = town_housing.get(full) or county_housing.get(cname)
+        h_price = plvr_t["unit_ping_wan"] if plvr_t else None
         pir = COUNTIES_META[s_idx][11]
 
         tcells = town_cells.get(ti, [])
         if tcells:
             rep_cell = tcells[len(tcells) // 2]
             f_share = round(sum(pct["forest"][c] for c in tcells) / (100.0 * len(tcells)), 3)
+            c_share = round(sum(pct["crop"][c] for c in tcells) / (100.0 * len(tcells)), 3)
             d_share = round(sum(pct["developed"][c] for c in tcells) / (100.0 * len(tcells)), 3)
         else:
             # Find nearest land cell in same county
             bb = town_shapes[ti].bbox
             rep_cell = nearest_land_cell((bb[0] + bb[2]) / 2.0, (bb[1] + bb[3]) / 2.0, s_idx)
             f_share = round(pct["forest"][rep_cell] / 100.0, 3)
+            c_share = round(pct["crop"][rep_cell] / 100.0, 3)
             d_share = round(pct["developed"][rep_cell] / 100.0, 3)
+
+        tq = town_quakes.get(ti)
+        q_cnt = tq["count_50km"] if tq else (cell_quakes[rep_cell] if rep_cell >= 0 else None)
 
         town_metrics[ti] = {
             "density": dens, "growth": gr, "age": med_age, "elderly": elder,
-            "degrees": bach, "single_hh": shh, "income": inc, "income_mean": inc_mean, "home_ratio": pir,
+            "child_pct": child_p, "aging_index": aging_idx,
+            "degrees": bach, "single_hh": shh, "income": inc, "income_mean": inc_mean,
+            "home_price": h_price, "home_ratio": pir,
         }
         county_rows.append([
             geoid, f"{cname} {tname}", stabbr, p24, round(area, 2) if area else None, dens,
-            gr, med_age, elder, bach, shh, inc, inc_mean, pir, f_share, d_share, COUNTIES_META[s_idx][0], rep_cell,
+            gr, med_age, elder, child_p, aging_idx, bach, shh, inc, inc_mean, h_price, pir,
+            f_share, c_share, d_share, q_cnt, COUNTIES_META[s_idx][0], rep_cell,
         ])
 
     counties_json = {
-        "vintage": "內政部戶政司 113年（2024）",
+        "vintage": "內政部戶政司 114–115年 / 財政部 113年 / 實價登錄 114S3–115S1",
         "fields": county_fields,
         "columns": [f["key"] for f in county_fields],
         "rows": county_rows,
@@ -1114,29 +1150,45 @@ def main():
         make_town_lens(
             "density", "people", "人口密度", "l-people", "👥", "人 / km²", "int", "log",
             ["#1e2a3a", "#2b5c7a", "#48989c", "#8bc46e", "#f0d050", "#e85d3c"], "neutral", "moi_ris",
-            "各鄉鎮市區每平方公里戶籍人口數（113年底，內政部戶政司）。", "density",
+            "各鄉鎮市區每平方公里戶籍人口數（114年底，內政部戶政司）。", "density",
         ),
         make_town_lens(
             "income", "prosperity", "綜所稅中位數", "l-income", "💰", "新台幣 / 申報戶", "usd", "linear",
             ["#2d3142", "#4f5d75", "#5a8f7b", "#8bc34a", "#f4d35e", "#ee964b"], "good", "tw_fia",
             "368 鄉鎮市區 113 年度綜合所得稅申報總額中位數（村里資料依納稅單位加權，財政部財政資訊中心）。", "income",
-            note="涵蓋全台 368 鄉鎮市區；以竹北市（131.7萬）、新竹市東區（113.8萬）、臺北市大安區（86.7萬）居冠。",
+            note="涵蓋全台 368 鄉鎮市區；以竹北市、新竹市東區、臺北市大安區居冠。",
+        ),
+        make_town_lens(
+            "home_price", "prosperity", "實價登錄房價", "l-home", "🏘️", "萬元 / 坪", "float", "log",
+            ["#2d6a4f", "#52b788", "#f4d35e", "#f48c06", "#d00000", "#8b0000"], "bad", "tw_plvr",
+            "內政部不動產交易實價登錄（114S3–115S1）各鄉鎮住宅成交單價中位數（萬元/坪，已排除親友特殊交易）。", "home_price",
+            note="直接解析近 3 季實價登錄 CSV；交易筆數少於 3 筆之偏鄉以所屬縣市中位數補齊。",
         ),
         make_town_lens(
             "degrees", "knowledge", "大專學歷", "l-degrees", "🎓", "%", "pct", "linear",
             ["#272343", "#3d5a80", "#4ea8de", "#64dfdf", "#c8f4a6"], "good", "moi_ris",
-            "各鄉鎮市區 15 歲以上具專科、大學或研究所以上學歷人口比例（113年）。", "degrees",
+            "各鄉鎮市區 15 歲以上具專科、大學或研究所以上學歷人口比例（114年）。", "degrees",
         ),
         make_town_lens(
             "elderly", "people", "高齡比例", "l-age", "👴", "%", "pct", "linear",
             ["#2b5876", "#4e8098", "#90be6d", "#f9c74f", "#f8961e", "#d64545"], "neutral", "moi_ris",
-            "各鄉鎮市區 65 歲以上高齡人口比例（113年12月單歲人口統計，>20% 為超高齡社會）。", "elderly",
-            note="涵蓋全台 368 鄉鎮市區（內政部戶政司 ODRP014/11312 實際戶籍人口）。",
+            "各鄉鎮市區 65 歲以上高齡人口比例（115年10月單歲人口統計，>20% 為超高齡社會）。", "elderly",
+            note="涵蓋全台 368 鄉鎮市區（內政部戶政司 ODRP014/11510 實際戶籍人口）。",
+        ),
+        make_town_lens(
+            "child_pct", "people", "幼年比例", "l-people", "👶", "%", "pct", "linear",
+            ["#7a2e3a", "#c95b5b", "#e9c46a", "#7ec4cf", "#2a9d8f"], "good", "moi_ris",
+            "各鄉鎮市區 0–14 歲幼年人口占總人口比例（115年10月，直接反映少子化與年輕家庭移入）。", "child_pct",
+        ),
+        make_town_lens(
+            "aging_index", "people", "老化指數", "l-age", "⚖️", "（65+ ÷ 0–14 × 100）", "float", "log",
+            ["#2a9d8f", "#8ab17d", "#f4d35e", "#f48c06", "#d64545", "#7a1c1c"], "bad", "moi_ris",
+            "各鄉鎮市區老化指數（65 歲以上人口 ÷ 0–14 歲人口 × 100，數值越高代表高齡少子化越劇烈）。", "aging_index",
         ),
         make_town_lens(
             "growth", "people", "人口成長", "l-growth", "📈", "%", "pct", "linear",
             ["#b23a48", "#d97777", "#e8dfd5", "#7ec4cf", "#2a9d8f", "#1d6f63"], "good", "moi_ris",
-            "2021–2024 年各鄉鎮市區戶籍人口增減幅度（內政部戶政司）。", "growth",
+            "2021–2025 年各鄉鎮市區戶籍人口增減幅度（內政部戶政司）。", "growth",
         ),
         make_town_lens(
             "home_ratio", "prosperity", "房價所得比", "l-home", "🏠", "倍", "float", "linear",
@@ -1147,12 +1199,12 @@ def main():
         make_town_lens(
             "age", "people", "年齡中位數", "l-age", "⏳", "歲", "years", "linear",
             ["#2a9d8f", "#8ab17d", "#e9c46a", "#f4a261", "#e76f51"], "neutral", "moi_ris",
-            "各鄉鎮市區全體戶籍人口年齡中位數（113年）。", "age",
+            "各鄉鎮市區全體戶籍人口年齡中位數（115年10月）。", "age",
         ),
         make_town_lens(
             "single_hh", "life", "單人戶比例", "l-commute", "🧍", "%", "pct", "linear",
             ["#264653", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"], "neutral", "moi_ris",
-            "各鄉鎮市區 1 人獨居戶占普通住戶總數比例（113年）。", "single_hh",
+            "各鄉鎮市區 1 人獨居戶占普通住戶總數比例（114年）。", "single_hh",
         ),
         {
             "id": "elevation", "group": "land", "name": "地形海拔", "icon": "l-land", "emoji": "⛰️",
@@ -1166,22 +1218,50 @@ def main():
         {
             "id": "forest", "group": "land", "name": "森林覆蓋", "icon": "l-forest", "emoji": "🌲",
             "unit": "%", "format": "pct", "scale": "linear",
-            "domain": [0, 0.95],
+            "domain": [0, 1.0],
             "ramp": ["#d8cfa8", "#9bb56c", "#5b8e47", "#2e6132", "#1b4322"],
-            "higher_is": "good", "source": "etopo",
-            "description": "各六角格森林覆蓋比例推估（結合高程與人口密度）。",
+            "higher_is": "good", "source": "esa_worldcover" if has_esa_wc else "etopo",
+            "description": "各六角格真實森林覆蓋比例（ESA WorldCover 10m 衛星圖資取樣）。",
             "values": [round(pct["forest"][i] / 100.0, 2) if owner[i] >= 0 else None for i in range(grid.size)],
+        },
+        {
+            "id": "crop", "group": "land", "name": "農地覆蓋", "icon": "y-food", "emoji": "🌾",
+            "unit": "%", "format": "pct", "scale": "linear",
+            "domain": [0, 0.85],
+            "ramp": ["#28323c", "#6a7b58", "#a8b85c", "#d8c852", "#f2d64b"],
+            "higher_is": "neutral", "source": "esa_worldcover" if has_esa_wc else "etopo",
+            "description": "各六角格真實農田耕地比例（ESA WorldCover 10m 衛星圖資取樣，清楚呈現嘉南、彰化、蘭陽平原）。",
+            "values": [round(pct["crop"][i] / 100.0, 2) if owner[i] >= 0 else None for i in range(grid.size)],
+        },
+        {
+            "id": "developed", "group": "land", "name": "都會建成區", "icon": "l-developed", "emoji": "🏙️",
+            "unit": "%", "format": "pct", "scale": "linear",
+            "domain": [0, 0.85],
+            "ramp": ["#1e2a38", "#4d5e72", "#8e8276", "#c9956c", "#e87a52"],
+            "higher_is": "neutral", "source": "esa_worldcover" if has_esa_wc else "etopo",
+            "description": "各六角格真實建築與道路人工鋪面比例（ESA WorldCover 10m 衛星圖資取樣）。",
+            "values": [round(pct["developed"][i] / 100.0, 2) if owner[i] >= 0 else None for i in range(grid.size)],
+        },
+        {
+            "id": "quakes", "group": "land", "name": "地震活動度", "icon": "l-disasters", "emoji": "🌋",
+            "unit": "次（20年 M4+）", "format": "int", "scale": "log",
+            "domain": pct_domain(cell_quakes, 0.02, 0.98),
+            "ramp": ["#1f3a52", "#3e6b89", "#e9c46a", "#f48c06", "#e63946", "#8b0000"],
+            "higher_is": "bad", "source": "usgs_eq",
+            "description": "2006–2026 年各六角格半徑 50 公里內發生規模 M4.0 以上地震次數（USGS 全球地震目錄）。",
+            "values": cell_quakes,
+            "note": "清楚呈現花蓮、臺東縱谷與宜蘭外海板塊隱沒帶之高地震頻率。",
         },
     ]
 
     lenses_json = {
-        "vintage": "內政部戶政司 113年 & 主計總處",
+        "vintage": "內政部戶政司 114–115年 / 實價登錄 114S3–115S1 / ESA 衛星 / USGS",
         "groups": [
-            {"id": "people", "name": "人口與高齡"},
+            {"id": "people", "name": "人口與少子高齡"},
             {"id": "prosperity", "name": "所得與房價"},
             {"id": "knowledge", "name": "教育學歷"},
             {"id": "life", "name": "家戶生活"},
-            {"id": "land", "name": "地形與土地"},
+            {"id": "land", "name": "地形、地表與地震"},
         ],
         "lenses": lenses_list,
     }
@@ -1546,14 +1626,50 @@ def main():
             "used_for": ["台灣奇觀圖層"],
             "files": [],
         },
+        {
+            "id": "tw_plvr",
+            "title": "不動產交易實價登錄批次開放資料（住宅買賣）",
+            "publisher": "內政部地政司（不動產交易實價查詢服務網）",
+            "homepage": "https://plvr.land.moi.gov.tw/",
+            "license": "政府資料開放授權條款-第1版",
+            "vintage": "民國 114 年第 3 季至 115 年第 1 季（114S3–115S1）",
+            "description": "直接下載並解析近 3 季全台 22 縣市實價登錄買賣 CSV，排除特殊交易後計算各鄉鎮住宅單價（萬元/坪）與總價中位數。",
+            "used_for": ["實價登錄房價指標", "鄉鎮住宅成交單價"],
+            "files": [{"filename": "lvr_114S3.zip / lvr_114S4.zip / lvr_115S1.zip", "url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=115S1&type=zip&fileName=lvr_landcsv.zip"}],
+        },
+        {
+            "id": "esa_worldcover",
+            "title": "ESA WorldCover 10m 2021 v200 全球衛星地表覆蓋",
+            "publisher": "歐洲太空總署（European Space Agency）",
+            "homepage": "https://esa-worldcover.org/",
+            "license": "CC BY 4.0",
+            "vintage": "2021 v200 (10m 解析度)",
+            "description": "基於 Sentinel-1 與 Sentinel-2 衛星影像之 10 公尺解析度地表覆蓋圖資，於全臺 1,247 個陸地六角格內多點取樣森林、農田、都會建成區與濕地比例。",
+            "used_for": ["真實地表地貌渲染", "森林覆蓋指標", "農地覆蓋指標", "都會建成區指標", "地形與土地顧問"],
+            "files": [{"filename": "ESA_WorldCover_10m_2021_v200_N24E120_Map.tif", "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N24E120_Map.tif"}],
+        },
+        {
+            "id": "usgs_eq",
+            "title": "USGS ComCat 全球地震目錄（臺灣周邊 20 年 M4.0+）",
+            "publisher": "美國地質調查局（USGS Earthquake Hazards Program）",
+            "homepage": "https://earthquake.usgs.gov/",
+            "license": "Public domain",
+            "vintage": "2006–2026（近 20 年 M4.0+）",
+            "description": "收錄 2006 至 2026 年臺灣周邊（21.5°–26.5°N, 118°–123°E）規模 M4.0 以上地震事件，計算各六角格與 368 鄉鎮半徑 50 公里內之地震活動頻率。",
+            "used_for": ["地震活動度指標", "災害紀錄 disasters.json"],
+            "files": [{"filename": "tw_quakes_2006_2026.geojson", "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=21.5&maxlatitude=26.5&minlongitude=118.0&maxlongitude=123.0&minmagnitude=4.0&starttime=2006-01-01"}],
+        },
     ]
 
-    # Clean out old US-only data files so the app never loads stale US military/trade/districts/disasters
+    # Build v2 expansion datasets: districts.json, trade.json, disasters.json
+    districts_json = build_districts_json(states_json, cities_json, COUNTIES_META, town_meta)
+    trade_json = build_trade_json(states_json, cities_json, infrastructure_json, grid, owner)
+
+    # Keep military.json removed (Taiwan defense rosters are classified; not fabricated)
     WEB_DATA.mkdir(parents=True, exist_ok=True)
-    for stale in ("military.json", "trade.json", "districts.json", "disasters.json"):
-        p = WEB_DATA / stale
-        if p.exists():
-            p.unlink()
+    stale_mil = WEB_DATA / "military.json"
+    if stale_mil.exists():
+        stale_mil.unlink()
 
     outputs = {
         "world.json": world_json,
@@ -1567,7 +1683,11 @@ def main():
         "wonders.json": wonders_json,
         "citizens.json": citizens_json,
         "sources.json": sources_json,
+        "districts.json": districts_json,
+        "trade.json": trade_json,
     }
+    if disasters_json is not None:
+        outputs["disasters.json"] = disasters_json
     for fname, data in outputs.items():
         out_path = WEB_DATA / fname
         out_path.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

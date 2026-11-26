@@ -5,98 +5,154 @@
       "url": "https://cdn.jsdelivr.net/npm/taiwan-atlas/counties-10t.json",
       "bytes": 143939,
       "sha256": "cd4be67df3c7497d3dd49106b17e6f337aeb2466140e4499287799892c15ac7b",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:37+00:00"
     },
     {
       "file": "tw_boundaries/towns-10t.json",
       "url": "https://cdn.jsdelivr.net/npm/taiwan-atlas/towns-10t.json",
       "bytes": 512094,
       "sha256": "250f63cdef76679b67d2a34633a69355c8f1180ae6b55407e6c87789940feab0",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:37+00:00"
     },
     {
       "file": "etopo/etopo_tw.csv",
       "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/etopo180.csv?altitude%5B(21.4):1:(26.6)%5D%5B(117.8):1:(122.6)%5D",
       "bytes": 3647280,
       "sha256": "a67191b60a7ce3e05c3f7c69d109a915ddca8473583a8fa190f012435d965c20",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:37+00:00"
     },
     {
       "file": "natural_earth/ne_10m_roads.geojson",
       "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_roads.geojson",
       "bytes": 50474096,
       "sha256": "66a0c7b438e92fd124822cc5921cfa11042f48c294ade5e0f03f2c6640fd0248",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:38+00:00"
     },
     {
       "file": "natural_earth/ne_10m_railroads.geojson",
       "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_railroads.geojson",
       "bytes": 39598080,
       "sha256": "a0962d7866060ae3e24df255f6d662389ac9ba7e0df40cf329c2281190b861e6",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:38+00:00"
     },
     {
       "file": "tw_fia/fia_income_2024.csv",
       "url": "https://raw.githubusercontent.com/kiang/salary/gh-pages/data/csv/2024.csv",
       "bytes": 556833,
       "sha256": "9fe767555e33260b44bc57686e6ee0571457a43971e30fc1dbd511ce35d2880f",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:40:38+00:00"
+    },
+    {
+      "file": "tw_plvr/lvr_114S3.zip",
+      "url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=114S3&type=zip&fileName=lvr_landcsv.zip",
+      "bytes": 15018542,
+      "sha256": "a3b3b51c7cdc9b9790a51a78f232fb3875ca5e1ff2f12a32644109dd4ba962bc",
+      "verified_utc": "2026-11-26T10:40:39+00:00"
+    },
+    {
+      "file": "tw_plvr/lvr_114S4.zip",
+      "url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=114S4&type=zip&fileName=lvr_landcsv.zip",
+      "bytes": 13872186,
+      "sha256": "68315c006fa367834eaacf032ceccb22a114fc8798d87b8dac23cf5eb64030ab",
+      "verified_utc": "2026-11-26T10:40:41+00:00"
+    },
+    {
+      "file": "tw_plvr/lvr_115S1.zip",
+      "url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=115S1&type=zip&fileName=lvr_landcsv.zip",
+      "bytes": 14252348,
+      "sha256": "8d0bfbaea4fe56d7aa9876b8d587d51d6f69f3419ba1d4e5bab59ec198fe9fe2",
+      "verified_utc": "2026-11-26T10:40:44+00:00"
+    },
+    {
+      "file": "usgs_eq/tw_quakes_2006_2026.geojson",
+      "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=21.5&maxlatitude=26.5&minlongitude=118.0&maxlongitude=123.0&minmagnitude=4.0&starttime=2006-01-01",
+      "bytes": 2029118,
+      "sha256": "7a6674a1ec5bfc847f5b680cb7425158c320010eabe4950179a40340929c43f8",
+      "verified_utc": "2026-11-26T10:40:46+00:00"
+    },
+    {
+      "file": "esa_worldcover/N24E120.tif",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N24E120_Map.tif",
+      "bytes": 13831183,
+      "sha256": "730c11c72158595d6fcc9b0fe4a61ff2fb786e17f08a3412542ce7e4de17a3c9",
+      "verified_utc": "2026-11-26T10:40:53+00:00"
+    },
+    {
+      "file": "esa_worldcover/N21E120.tif",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N21E120_Map.tif",
+      "bytes": 22768220,
+      "sha256": "b23a186262569b69c05b7638e6fa0645a7376ebbb2644a8eac8c58fa8a767bd2",
+      "verified_utc": "2026-11-26T10:41:03+00:00"
+    },
+    {
+      "file": "esa_worldcover/N24E117.tif",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N24E117_Map.tif",
+      "bytes": 74403833,
+      "sha256": "99cbc3abd8b76a1bcb81e1e614323506807076dad6799b0727644cbf6a4024c1",
+      "verified_utc": "2026-11-26T10:41:31+00:00"
+    },
+    {
+      "file": "esa_worldcover/N21E117.tif",
+      "url": "https://esa-worldcover.s3.eu-central-1.amazonaws.com/v200/2021/map/ESA_WorldCover_10m_2021_v200_N21E117_Map.tif",
+      "bytes": 5869241,
+      "sha256": "072533cfdf31cfddf3f4d033fe4b48df36448a5b36dd20f80abd80e2841244fb",
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/pop_area_110.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP048/110",
       "bytes": 48894,
       "sha256": "47a88816458a2e7ddf1e60ee2cfdd793c57102818f035db43aadfa7b56b7f4aa",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/pop_area_111.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP048/111",
       "bytes": 48891,
       "sha256": "33ff08192cfa938237bca5c5e560d1ebfcca07a742ea1a3211e9176a4c36ee6a",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/pop_area_112.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP048/112",
       "bytes": 48961,
       "sha256": "57ed3934badd81c3f07b17303d5d4e096e3f3a508e0a166095df0b4255e2cbc7",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/pop_area_113.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP048/113",
       "bytes": 48963,
       "sha256": "9a596592a92d2d6d9041ac28bc34264f056734dab34380b84189c09b05864753",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/pop_area_114.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP048/114",
       "bytes": 51691,
       "sha256": "cc3118b7800132301570800514539411cab4238073ad8bdcc7c8f7bc8200dc4c",
-      "verified_utc": "2026-11-26T05:27:59+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/age_pop_11510.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP014/11510",
       "bytes": 41772084,
       "sha256": "efcdf979f9a5ebc3f23d032bb97cc4b56b1a4dd2f0a0c87b45a6385fe8080014",
-      "verified_utc": "2026-11-26T05:28:05+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/edu_114.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP020/114",
       "bytes": 14609666,
       "sha256": "a648c56c56e9fcffc11eb1f2aab05145e637952ab3cab733c3d9330e21971e10",
-      "verified_utc": "2026-11-26T05:28:07+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     },
     {
       "file": "tw_ris/hh_114.json",
       "url": "https://www.ris.gov.tw/rs-opendata/api/v1/datastore/ODRP025/114",
       "bytes": 3012323,
       "sha256": "27652c4a8ae23db516506bb7cee22bf1e759b5c7723108670d29df7d81353636",
-      "verified_utc": "2026-11-26T05:28:08+00:00"
+      "verified_utc": "2026-11-26T10:41:34+00:00"
     }
   ]
 }

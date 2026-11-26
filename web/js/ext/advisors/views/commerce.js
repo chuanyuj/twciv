@@ -29,10 +29,10 @@ export async function mount(ctx) {
   const nm = trade?.national_musd || {};
   const topPort = infra?.ports?.[0], topAir = infra?.airports?.[0];
   el.insertAdjacentHTML("beforeend", tiles([
-    { label: "Domestic freight", value: fin(nm.domestic) ? money(nm.domestic * MUSD) : "–", sub: `${esc(trade?.vintage || "FAF")} · by value` },
-    { label: "Busiest port", value: topPort ? `${count3(topPort.tons)} t` : "–", sub: topPort ? topPort.name : "" },
-    { label: "Busiest airport", value: topAir ? count3(topAir.enplanements) : "–", sub: topAir ? `${topAir.id} boardings ${topAir.year}` : "" },
-  ]) + (trade ? `<p class="adv-callout">Freight values are model estimates from the Freight Analysis Framework, in current dollars: what moves between places, not what each place produces. Imports ${money(nm.import * MUSD)} and exports ${money(nm.export * MUSD)} are counted separately.</p>` : ""));
+    { label: "國內城際流通", value: fin(nm.domestic) ? money(nm.domestic * MUSD) : "–", sub: `${esc(trade?.vintage || "交通部")} · 推估年值` },
+    { label: "第一大商港", value: topPort ? `${count3(topPort.tons)} 噸` : "–", sub: topPort ? topPort.name : "" },
+    { label: "第一大機場", value: topAir ? `${count3(topAir.enplanements)} 人次` : "–", sub: topAir ? `${topAir.id} ${topAir.year}年客運量` : "" },
+  ]) + (trade ? `<p class="adv-callout">呈現全臺 12 大生活圈之間 18 條主要經濟與客貨運幹線（綜合國道貨運、高鐵／臺鐵走廊與港口機場流向）。對外貿易年進口約 ${money(nm.import * MUSD)}、出口約 ${money(nm.export * MUSD)}。</p>` : ""));
 
   // --- trade routes ---------------------------------------------------------------------------------------------
   let routes = [], zoneById = new Map(), routeCells = new Map(), overlayOff = null;
@@ -52,12 +52,12 @@ export async function mount(ctx) {
     for (const list of routeCells.values()) list.sort((a, b) => b.value_musd - a.value_musd);
     const vMax = Math.max(1, ...routes.map((r) => r.value_musd));
 
-    const rBody = section(el, { title: "Trade routes", kicker: esc(trade.vintage || ""), note: `${esc(trade.rule || "")}` });
+    const rBody = section(el, { title: "城際經濟與貨運幹線", kicker: esc(trade.vintage || ""), note: `${esc(trade.rule || "")}` });
     // Mode mix of the routes, value-weighted.
     const modeTot = {};
     for (const r of routes) for (const [m, s] of Object.entries(r.modes || {})) modeTot[m] = (modeTot[m] || 0) + (s || 0) * r.value_musd;
     const modeParts = (trade.modes || []).map((m) => ({ key: m.id, label: m.name, value: modeTot[m.id] || 0, color: MODE_COLOR[m.id] || "#999", text: money((modeTot[m.id] || 0) * MUSD) })).filter((p) => p.value > 0);
-    rBody.insertAdjacentHTML("beforeend", `<h4 class="adv-h4">How the ${routes.length} routes' freight moves (by value)</h4>`);
+    rBody.insertAdjacentHTML("beforeend", `<h4 class="adv-h4">${routes.length} 條主力幹線之運具分布（按流通值加權）</h4>`);
     const modeBar = shareBar(rBody, {
       parts: modeParts,
       onHover: (p) => { api.modeHot = p ? p.key : null; redraw(); },
@@ -259,26 +259,25 @@ export async function mount(ctx) {
   let portBars = null, airBars = null, portBubbles = null, airBubbles = null;
   if (infra) {
     const v = infra.vintage || {};
-    const pBody = section(el, { title: "Ports", kicker: esc(v.ports || ""), note: `${esc(infra.rules?.ports || "")} Bars split each port's tonnage into domestic, imports and exports.` });
+    const pBody = section(el, { title: "七大國際商港", kicker: esc(v.ports || ""), note: `${esc(infra.rules?.ports || "")} 依年貨物總吞吐量（公噸）排序。` });
     const ports = (infra.ports || []).map((p) => ({ ...p, key: `p${p.id}` }));
-    const PK = [{ key: "domestic", label: "Domestic", color: "#8fcbb8" }, { key: "imports", label: "Imports", color: "#4f9ad6" }, { key: "exports", label: "Exports", color: "#d9a457" }];
     const portHover = (p) => {
       link.hover(p ? { cells: new Set(p.cell != null ? [p.cell] : []), label: p.name } : null);
       portBubbles?.setHot(p ? p.key : null);
     };
-    portBars = stackedBars(pBody, {
-      rows: ports.slice(0, 15).map((p) => ({ key: p.key, label: p.name, sub: p.state, parts: { domestic: p.domestic, imports: p.imports, exports: p.exports }, total: p.tons, text: `${count3(p.tons)} t` })),
-      keys: PK, fmt: (x) => `${count3(x)} t`, ariaLabel: "Busiest ports by tonnage",
-      onHover: (x) => portHover(x ? ports.find((p) => p.key === x.row.key) : null),
-      onClick: (x) => flyTo(ports.find((p) => p.key === x.row.key)),
+    portBars = barList(pBody, {
+      rank: true, ariaLabel: "國際商港年吞吐量排行",
+      rows: ports.map((p) => ({ key: p.key, label: p.name, sub: p.state, value: p.tons, text: `${count3(p.tons)} 噸`, color: PORT_COLOR })),
+      onHover: (r) => portHover(r ? ports.find((p) => p.key === r.key) : null),
+      onClick: (r) => flyTo(ports.find((p) => p.key === r.key)),
     });
-    pBody.insertAdjacentHTML("beforeend", swatchLegend(PK) + `<p class="adv-note">Top 15 of ${int(ports.length)} principal ports in the lower 48 (short tons).</p>`);
+    pBody.insertAdjacentHTML("beforeend", `<p class="adv-note">臺灣港務公司轄下 ${int(ports.length)} 大國際商港年吞吐量（公噸）。</p>`);
 
-    const aBody = section(el, { title: "Airports", kicker: esc(v.airports || ""), note: esc(infra.rules?.airports || "") });
+    const aBody = section(el, { title: "主要民航機場", kicker: esc(v.airports || ""), note: esc(infra.rules?.airports || "") });
     const airports = (infra.airports || []).map((a) => ({ ...a, key: `a${a.id}` }));
     let aMode = "pax";
     const aHost = mk("div");
-    segmented(aBody, { label: "Rank by", value: aMode, options: [{ value: "pax", label: "Passengers" }, { value: "cargo", label: "Cargo" }], onChange: (x) => { aMode = x; drawAir(); } });
+    segmented(aBody, { label: "排序方式", value: aMode, options: [{ value: "pax", label: "客運人次" }, { value: "cargo", label: "貨運量" }], onChange: (x) => { aMode = x; drawAir(); } });
     aBody.appendChild(aHost);
     const airHover = (a) => {
       link.hover(a ? { cells: new Set(a.cell != null ? [a.cell] : []), label: `${a.id} · ${a.name}` } : null);
